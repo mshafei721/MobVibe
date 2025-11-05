@@ -9,6 +9,166 @@ Related: recommendations.md, features-and-journeys.md, architecture.md, implemen
 
 > See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
 
+## Phase 0.5: UI Framework Integration (Pre-Phase 1)
+
+**Duration:** 3-4 weeks (15-20 working days)
+**Goal:** Establish robust UI foundation with systematic framework integration
+**Status:** Planned (execute before Phase 1)
+
+### Overview
+
+Before starting Phase 1 MVP development, establish a curated UI framework foundation that ensures:
+- Native iOS/Android feel with 60fps performance
+- Single source of truth for design tokens
+- Adapter pattern preventing vendor lock-in
+- WCAG AA accessibility compliance
+- Systematic integration of UI libraries
+
+**See:** [ui/UI-FRAMEWORK-INTEGRATION-PLAN.md](./ui/UI-FRAMEWORK-INTEGRATION-PLAN.md) for complete 10-step specification
+
+### Key Decisions
+
+#### 1. Foundation Choice (Week 1)
+**Choose ONE primary UI library:**
+
+| Option | Best For | Performance | DX | Theming |
+|--------|----------|-------------|-----|---------|
+| **Tamagui** | Web parity, max performance, complex animations | ⭐⭐⭐⭐⭐ (compile-time) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **gluestack UI** | Rapid dev, Tailwind-like, flexible theming | ⭐⭐⭐⭐ (runtime) | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+
+**Decision Criteria:**
+- Score both on: performance, web viability, DX, theming depth, migration effort
+- Document rationale in `docs/ui/FOUNDATION.md`
+
+#### 2. Selective Add-On Libraries
+**Cherry-pick only what's needed:**
+- **React Native Paper** - Material Design components (Android-forward screens only)
+- **Gifted Chat** - Rich chat UI (chat screens only)
+- **Lottie** - Vector animations (centralized component)
+- **UI Kitten / Elements** - Fill gaps (no duplicate primitives)
+
+### Week-by-Week Breakdown
+
+#### **Week 1: Baseline & Foundation Decision** (5 days)
+- Day 1-2: Measure baseline (TTI, FPS, bundle size, a11y audit)
+- Day 3-4: Build proof-of-concepts with Tamagui AND gluestack
+- Day 5: Score both, make decision, document rationale
+
+**Deliverable:** `docs/ui/FOUNDATION.md` with decision and scoring
+
+---
+
+#### **Week 2: Tokens & Primitives** (5 days)
+- Day 1-2: Define unified token system (colors, typography, spacing, motion, elevation)
+- Day 3-5: Build core primitives (Button, Text, Input, Card, Sheet, ListItem, Icon, Divider, Spinner)
+
+**Deliverable:**
+- `src/ui/tokens.{ts,json}` with brand mapping
+- `src/ui/primitives/*` with 10+ components
+- `src/ui/adapters/*` wrapping vendor libraries
+
+---
+
+#### **Week 3: Integration & Screen Refactors** (5 days)
+- Day 1-2: Selective library integration (Paper, Gifted Chat, Lottie)
+- Day 3-5: Refactor 3-5 key screens (Home, Profile, Settings, Chat, Code Editor)
+
+**Deliverable:** Refactored screens using primitives only (zero direct vendor imports)
+
+---
+
+#### **Week 4: QA, Performance, Documentation** (5 days)
+- Day 1-2: Testing (snapshot, RTL, a11y, E2E)
+- Day 3: Performance benchmarks (TTI, FPS, bundle analysis)
+- Day 4-5: Documentation (`USAGE.md`, `THEMING.md`, `ADAPTERS.md`, `MIGRATION_GUIDE.md`)
+
+**Deliverable:**
+- Complete `docs/ui/*` documentation suite
+- Performance reports in `reports/ui/`
+- PRs ready for review
+
+---
+
+### Acceptance Criteria
+
+**Must all pass before starting Phase 1:**
+
+| Criterion | Target | Verification |
+|-----------|--------|--------------|
+| **Single Source of Truth** | Zero token conflicts | `grep -r "color:" src/ \| grep -v "tokens.colors"` |
+| **No Vendor Leakage** | Zero direct imports outside adapters | `grep -r "from 'react-native-paper'" src/ \| grep -v adapters` |
+| **Native Feel** | Zero a11y issues, native gestures | `npx axe-core/react-native`, manual testing |
+| **Performance** | TTI ≤ +10%, FPS ≥ 55 | `expo-performance-monitor` |
+| **Documentation** | All 4 docs complete | Check `docs/ui/{FOUNDATION,USAGE,THEMING,ADAPTERS,MIGRATION_GUIDE}.md` |
+
+**Automated Verification:**
+```bash
+./scripts/ui-audit.sh  # Runs all checks, outputs to reports/ui/AUDIT.md
+```
+
+### Deliverables
+
+**Code:**
+```
+src/ui/
+  ├── tokens.{ts,json}      # Design tokens
+  ├── primitives/           # App components (Button, Text, Card, etc.)
+  ├── adapters/             # Vendor wrappers (tamagui/, paper/, elements/)
+  └── platform/             # iOS/Android specific (ActionSheet, Haptics, Picker)
+```
+
+**Documentation:**
+```
+docs/ui/
+  ├── FOUNDATION.md         # Decision rationale (Tamagui vs gluestack)
+  ├── USAGE.md              # How to use primitives
+  ├── THEMING.md            # Token system and themes
+  ├── ADAPTERS.md           # Adapter pattern explanation
+  └── MIGRATION_GUIDE.md    # Step-by-step migration from old components
+```
+
+**Reports:**
+```
+reports/ui/
+  ├── baseline-performance.json
+  ├── final-performance.json
+  ├── baseline-a11y.json
+  ├── final-a11y.json
+  ├── bundle-analysis.json
+  └── AUDIT.md              # Verification results
+```
+
+### Success Metrics
+
+- ✅ Single UI foundation configured
+- ✅ Unified token system (one source of truth)
+- ✅ 10+ primitives with adapters
+- ✅ 3-5 screens refactored successfully
+- ✅ Zero vendor imports outside adapters
+- ✅ Performance within budget (TTI ≤ +10%, FPS ≥ 55)
+- ✅ WCAG AA compliance (contrast, screen reader, dynamic type)
+- ✅ Complete documentation enabling team self-service
+
+### Dependencies
+
+**External:**
+- Expo SDK 54 upgrade (Phase 1, Week 1-2)
+- React Native 0.81 upgrade (Phase 1, Week 1-2)
+
+**Note:** Phase 0.5 can use SDK 52 initially, then upgrade during Phase 1 Week 1-2 alongside foundation upgrade.
+
+### Risk Mitigation
+
+| Risk | Mitigation |
+|------|-----------|
+| **Foundation choice regret** | Build POCs with both Tamagui AND gluestack before deciding |
+| **Performance regression** | Measure baseline first, set budgets, enable compiler/optimizations |
+| **Accessibility gaps** | Test with screen reader from day 1, automated audits |
+| **Scope creep** | Only refactor 3-5 representative screens, leave rest for Phase 1+ |
+| **Team adoption** | Comprehensive docs, live demo, migration guide, pair programming |
+
+---
+
 ## Phase 1: MVP (Weeks 1-12)
 
 ### Weeks 1-2: Foundation

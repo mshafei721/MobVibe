@@ -21,6 +21,7 @@ Related: All documentation files
 - **[design-system.md](./design-system.md)** - Native iOS/Android design system, components, patterns
 - **[vibecode/native_ui.md](./vibecode/native_ui.md)** - Native UI enhancements and component guidelines
 - **[UX-CHANGES.md](./UX-CHANGES.md)** - Major UX revision (QR code → in-app WebView preview)
+- **[ui/UI-FRAMEWORK-INTEGRATION-PLAN.md](./ui/UI-FRAMEWORK-INTEGRATION-PLAN.md)** - Phase 0.5 UI framework selection and integration plan (Tamagui vs gluestack UI)
 
 ### Planning & Strategy
 - **[roadmap.md](./roadmap.md)** - Development timeline, milestones, success metrics
@@ -48,9 +49,10 @@ Related: All documentation files
 
 ### 🎨 Design & UX
 8. **design-system.md** - Native iOS/Android design system, components, patterns
+9. **ui/UI-FRAMEWORK-INTEGRATION-PLAN.md** - Phase 0.5 UI framework integration (Tamagui vs gluestack UI)
 
 ### ✨ Enhancements
-9. **enhancements.md** - Voice input, icon workflows, 3D logos, integrations
+10. **enhancements.md** - Voice input, icon workflows, 3D logos, integrations
 
 ---
 
@@ -520,9 +522,9 @@ Generate 3D logos, convert to 2D app icons
 
 **Status**: Complete documentation suite ✅ | All features documented ✅ | Ready for development ✅
 
-**Total Documentation**: 11 files, 15,000+ lines, comprehensive coverage
+**Total Documentation**: 12 files, 18,000+ lines, comprehensive coverage
 
-**Next Steps**: Begin Phase 1, Week 1-2 (Foundation) implementation
+**Next Steps**: Phase 0.5 (UI Framework Integration), then Phase 1, Week 1-2 (Foundation) implementation
 
 ---
 
@@ -549,6 +551,40 @@ Generate 3D logos, convert to 2D app icons
 ---
 
 ## Change Log
+
+### 2025-11-05 - UI Framework Integration Plan Added
+
+**New Documentation:** Phase 0.5 UI Framework Integration Plan (Pre-Phase 1)
+
+#### New Files
+- ✅ [ui/UI-FRAMEWORK-INTEGRATION-PLAN.md](./ui/UI-FRAMEWORK-INTEGRATION-PLAN.md) - Comprehensive 3,000+ line specification for UI framework selection and integration
+
+#### Contents
+- **Foundation Decision Framework** - Tamagui vs gluestack UI comparison with scoring matrix
+- **Unified Token System** - Colors, typography, spacing, motion, elevation tokens
+- **Primitives & Adapter Pattern** - No vendor lock-in strategy
+- **Selective Library Integration** - React Native Paper, UI Kitten, Elements, Gifted Chat, Lottie
+- **Native Feel Enhancements** - Gestures, haptics, platform-appropriate patterns
+- **Performance & Accessibility** - 60fps animations, WCAG AA compliance, RTL support
+- **Verification Loop** - Automated predicates ensuring quality (foundation_locked, tokens_single_source, no_vendor_leakage, native_feel, perf_ok)
+- **10-Step Implementation Plan** - Baseline → Foundation → Tokens → Primitives → Integration → Testing → Documentation
+- **Deliverables** - Code artifacts, documentation, reports, refactored screens, PRs
+- **Timeline** - 3-4 weeks (15-20 working days)
+
+#### Impact
+- **Pre-Phase 1 Foundation** - Establishes UI system before starting Phase 1 development
+- **Vendor Independence** - Adapter pattern prevents lock-in to specific libraries
+- **Performance First** - Compile-time styling (Tamagui) or runtime optimization (gluestack)
+- **Native-First** - iOS/Android platform conventions respected
+- **Accessibility Built-In** - WCAG AA, screen reader, dynamic type, RTL from day 1
+- **Documentation-Driven** - Complete specs before implementation
+
+#### Updated Files
+- ✅ SUMMARY.md - Added UI framework integration to Design & UX section
+- ✅ Updated total documentation count: 11 → 12 files, 15,000+ → 18,000+ lines
+- ✅ Updated next steps to include Phase 0.5
+
+---
 
 ### 2025-11-05 - Documentation Normalization
 
