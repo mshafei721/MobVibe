@@ -29,3 +29,7 @@ web-build/
 # Logs
 logs/
 *.log
+
+# Design files (keep folder structure only)
+.docs/vibecode/*
+!.docs/vibecode/.gitkeep
