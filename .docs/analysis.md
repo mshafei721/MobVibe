@@ -1,4 +1,13 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: architecture.md, implementation.md, recommendations.md, roadmap.md
+-->
+
 # MobVibe Architecture Analysis & Improvements
+
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
 
 > Deep analysis of Codex recommendations with 2025 best practices
 
@@ -53,6 +62,8 @@ Mobile App (receives real-time updates)
 - Supabase Edge Functions: 2s CPU time, 150s idle, 400s wall clock max
 - Claude Agent SDK best practice: orchestrator pattern with specialized subagents
 - Production requirements: versioned hooks, idempotent operations, rollback capability
+
+**See also:** [architecture.md](./architecture.md) for complete event-driven worker architecture, [roadmap.md](./roadmap.md) Weeks 3-7 for implementation timeline
 
 ---
 
@@ -110,6 +121,8 @@ Mobile displays image
 // Backend handles all AI API calls ✅
 ```
 
+**See also:** [implementation.md](./implementation.md) for backend API endpoint specifications, [recommendations.md](./recommendations.md) Section 4 for security requirements
+
 ---
 
 ## 3. Expo Preview: EAS Update Workflow
@@ -131,7 +144,7 @@ Mobile displays image
 - No QR code scanning needed
 - Seamless single-device experience
 
-**Research (Expo SDK 52, Jan 2025):**
+**Research (Expo SDK 54, Jan 2025):**
 - EAS Update is the official preview workflow
 - Dev builds can load published updates instantly
 - No self-hosted tunnel management
@@ -163,6 +176,8 @@ WebView loads app from EAS CDN
 - Requires EAS account (free tier available)
 - ~30s to publish update
 - Need eas.json configuration
+
+**See also:** [UX-CHANGES.md](./UX-CHANGES.md) for complete in-app WebView preview design, [roadmap.md](./roadmap.md) Weeks 10-11 for UI implementation
 
 ---
 
@@ -229,6 +244,8 @@ CREATE POLICY "Users upload own files"
 - Proper RLS enforcement
 - Easier backups
 
+**See also:** [implementation.md](./implementation.md) for complete database schema with RLS policies, [recommendations.md](./recommendations.md) Section 5 for data model best practices
+
 ---
 
 ## 5. Documentation Quality: Linting + CI
@@ -266,5 +283,7 @@ MD033: false  # HTML allowed
 | EAS Preview | High | Medium | Medium |
 | RLS + Storage | High | Medium | Medium |
 | Markdown Lint | Medium | Low | Low |
+
+**See also:** [recommendations.md](./recommendations.md) for complete list of documentation improvements
 
 **Next:** Update all three docs with corrected patterns ✅

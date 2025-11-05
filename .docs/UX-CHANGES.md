@@ -1,4 +1,13 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: features-and-journeys.md, design-system.md, implementation.md, roadmap.md, architecture.md
+-->
+
 # MobVibe UX Changes Summary
+
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
 
 > Major UX revision: In-app preview with bottom tab navigation
 
@@ -31,6 +40,8 @@ WebView loads → Test app in-app immediately
 - Better for single-device users
 - Simpler onboarding
 
+**See also:** [analysis.md](./analysis.md) Section 3 for EAS Update implementation details
+
 ---
 
 ### 2. **Bottom Tab Navigation**
@@ -57,6 +68,8 @@ WebView loads → Test app in-app immediately
 **Settings & Profile:**
 - Moved to hamburger menu (☰) for cleaner main navigation
 
+**See also:** [design-system.md](./design-system.md) for component specifications, [features-and-journeys.md](./features-and-journeys.md) for detailed user flows
+
 ---
 
 ### 3. **Icon Generation: DALL-E → Nano Banana**
@@ -72,6 +85,8 @@ WebView loads → Test app in-app immediately
 - Preview variations before applying
 - Direct application to project
 - Recent generations gallery
+
+**See also:** [implementation.md](./implementation.md) for Nano Banana API integration details
 
 ---
 
@@ -94,6 +109,8 @@ Taps "Connect" on service →
 Follows guided setup →
 Claude auto-configures code
 ```
+
+**See also:** [features-and-journeys.md](./features-and-journeys.md) for complete integration workflows
 
 ---
 
@@ -144,6 +161,8 @@ User taps Icon Gen tab
 → Applies to project
 ```
 
+**See also:** [features-and-journeys.md](./features-and-journeys.md) for detailed user personas and journeys
+
 ---
 
 ## Screen Layouts
@@ -178,7 +197,7 @@ User taps Icon Gen tab
 │ │  • Full functionality           ││
 │ │  • Real-time updates            ││
 │ │  • Device frame simulation      ││
-│ │                                 ││
+│ │                          [📄]   ││ ← Floating button
 │ └─────────────────────────────────┘│
 │                                     │
 │ [🔄 Reload] [📸 Screenshot]        │
@@ -234,6 +253,38 @@ User taps Icon Gen tab
 └─────────────────────────────────────┘
 ```
 
+**See also:** [design-system.md](./design-system.md) for complete UI component library and patterns
+
+---
+
+### 5. **Floating Preview Button**
+
+**New Interaction Pattern:**
+- Small floating circle button on Preview tab
+- Quick access to full code viewer
+- Non-intrusive, always accessible
+- Context-preserving interaction
+
+**Workflow:**
+```
+User on Preview tab
+→ Taps floating button (📄)
+→ Code viewer opens (full app view)
+→ User can dismiss via:
+  ├─ Back button
+  ├─ X button
+  └─ Slide down gesture
+→ Returns to preview seamlessly
+```
+
+**Benefits vs Traditional Navigation:**
+- **Faster:** No tab switching required
+- **Contextual:** Stays in preview mode
+- **Intuitive:** Common mobile pattern
+- **Discoverable:** Always visible
+
+**See also:** [design-system.md](./design-system.md) for floating button component specs
+
 ---
 
 ## Updated Gestures
@@ -241,17 +292,24 @@ User taps Icon Gen tab
 ### Swipe Gestures
 - **Swipe between tabs** → Navigate Code/Preview/Integrations/Icon Gen
 - **Swipe down** → Refresh current view
+- **Swipe down on code viewer (from floating button)** → Dismiss code viewer
 - **Pull to refresh** → Code: update files, Preview: reload WebView
 
 ### Long Press
 - **Long press preview** → Screenshot/fullscreen options
 - **Long press code line** → Copy snippet
 - **Long press file** → View/download/share
+- **Long press floating button** → Quick actions menu
 
 ### Pinch & Zoom
 - **Pinch on preview** → Zoom in/out app
 - **Pinch on code** → Adjust text size
 - **Pinch on preview element (Phase 2)** → "Pinch to Build" feature
+
+### Tap Interactions
+- **Tap floating preview button** → Open code viewer overlay
+- **Tap X button or back** → Dismiss code viewer
+- **Tap outside code viewer** → Dismiss (optional)
 
 ---
 
@@ -270,6 +328,8 @@ app/
 │   └── index.tsx
 └── _layout.tsx              # Root with hamburger menu
 ```
+
+**See also:** [implementation.md](./implementation.md) for detailed component implementation and tech stack
 
 ### New Components
 ```typescript
@@ -360,10 +420,10 @@ type PreviewReadyEvent = {
 
 All documentation has been revised to reflect these changes:
 
-✅ **architecture.md** - In-app preview, bottom tabs, WebView integration
-✅ **implementation.md** - New components, Nano Banana API, tab structure
-✅ **features-and-journeys.md** - Updated flows, screens, interactions
-✅ **roadmap.md** - Phase 1 includes icon gen, WebView preview
+✅ **[architecture.md](./architecture.md)** - In-app preview, bottom tabs, WebView integration
+✅ **[implementation.md](./implementation.md)** - New components, Nano Banana API, tab structure
+✅ **[features-and-journeys.md](./features-and-journeys.md)** - Updated flows, screens, interactions
+✅ **[roadmap.md](./roadmap.md)** - Phase 1 includes icon gen, WebView preview
 
 ---
 

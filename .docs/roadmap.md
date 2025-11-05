@@ -1,4 +1,13 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: recommendations.md, features-and-journeys.md, architecture.md, implementation.md, analysis.md
+-->
+
 # MobVibe Development Roadmap
+
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
 
 ## Phase 1: MVP (Weeks 1-12)
 
@@ -30,6 +39,8 @@
 - Setup worker-sandbox communication
 
 **Deliverable:** Worker service + sandbox infrastructure
+
+**See also:** [architecture.md](./architecture.md) for event-driven worker architecture, [analysis.md](./analysis.md) for implementation best practices
 
 ---
 
@@ -80,6 +91,8 @@
 
 **Deliverable:** Complete mobile UI with in-app WebView preview
 
+**See also:** [UX-CHANGES.md](./UX-CHANGES.md) for detailed UX decisions, [design-system.md](./design-system.md) for component specifications
+
 ---
 
 ### Week 12: Testing & Launch Prep
@@ -125,6 +138,8 @@
 - Preview assets before applying
 
 **Deliverable:** Secure AI asset generation with Nano Banana proxies
+
+**See also:** [analysis.md](./analysis.md) for backend proxy security pattern, [recommendations.md](./recommendations.md) for API security requirements
 
 ---
 
@@ -299,7 +314,7 @@
 ## Technology Decisions
 
 ### Confirmed
-- ✅ React Native + Expo SDK 52 (mobile framework)
+- ✅ React Native 0.81 + Expo SDK 54 (mobile framework with React 19.1 support and precompiled XCFrameworks)
 - ✅ Claude Agent SDK (AI coding agent)
 - ✅ Worker Service on Fly.io/Render/Railway (long-running)
 - ✅ Fly.io microVMs (sandbox infrastructure)

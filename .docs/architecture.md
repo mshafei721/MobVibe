@@ -1,10 +1,21 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: implementation.md, data-flow.md, design-system.md, features-and-journeys.md
+-->
+
 # MobVibe Architecture
+
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
 
 > **Core Concept:** Users prompt → Claude Agent builds → Real-time updates
 
 ## Overview
 
 MobVibe is an AI-powered mobile app builder where **Claude Agent SDK writes all the code**. Users are product managers who describe what they want; Claude is the AI developer who builds it.
+
+See [implementation.md](./implementation.md) for technical stack details and [data-flow.md](./data-flow.md) for complete data flow diagrams.
 
 **Key Principle:** Users give requirements, not code.
 
@@ -135,6 +146,114 @@ Preview auto-reloads
 
 ---
 
+## Server-Side API Proxy Architecture
+
+**Security-First Design Principle**
+
+MobVibe implements a **server-side API proxy architecture** where all external AI service API keys are managed exclusively by the backend. Users never see, provide, or manage API keys directly.
+
+### Architecture Benefits
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                   CLIENT-SIDE (INSECURE)                     │
+│  ❌ API Keys in Mobile App → Reverse Engineering Risk        │
+│  ❌ Users Provide Own Keys → Support Burden                  │
+│  ❌ Direct API Calls → No Rate Limiting Control              │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│              SERVER-SIDE PROXY (MOBVIBE APPROACH)            │
+│  ✅ Keys Secured in Backend → Zero Exposure Risk             │
+│  ✅ Invisible to Users → Zero Configuration Required         │
+│  ✅ Backend Rate Limiting → Full Control & Abuse Prevention  │
+│  ✅ Centralized Billing → Better Cost Management             │
+│  ✅ Service Abstraction → Can Switch Providers Seamlessly    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### API Proxy Flow
+
+```
+Mobile App                Backend API              AI Service
+    │                         │                         │
+    ├──"Generate icon"───────>│                         │
+    │  (prompt only)          │                         │
+    │                         ├──auth + rate limit      │
+    │                         ├──add API key───────────>│
+    │                         │  (server key)           │
+    │                         │                         │
+    │                         │<────image data──────────┤
+    │<────signed URL──────────┤                         │
+    │  (no API key visible)   │                         │
+```
+
+### Services Proxied Through Backend
+
+**ALL AI APIs are server-side proxied:**
+
+1. **Anthropic Claude API** (Code Generation)
+   - Endpoint: `/start-coding-session`
+   - Key Location: Backend environment only
+   - Usage: Claude Agent SDK in Worker Service
+
+2. **Nano Banana API** (Icon Generation)
+   - Endpoint: `/generate-icon`
+   - Key Location: Supabase Edge Function env
+   - Usage: 2D app icon creation
+
+3. **Meshy AI / Luma AI** (3D Logo Generation)
+   - Endpoint: `/generate-3d-logo`
+   - Key Location: Backend environment only
+   - Usage: Premium 3D logo creation
+
+4. **ElevenLabs API** (Sound Generation)
+   - Endpoint: `/generate-sound`
+   - Key Location: Backend environment only
+   - Usage: UI sound effects generation
+
+5. **OpenAI API** (Future: Voice, Vision)
+   - Endpoint: `/ai-service` (future)
+   - Key Location: Backend environment only
+   - Usage: Additional AI capabilities
+
+### Security Advantages
+
+**1. Zero Key Exposure**
+- Mobile app contains ONLY public keys (Supabase anon key)
+- All AI service keys stored in backend environment variables
+- Even reverse engineering the app reveals nothing
+
+**2. Centralized Rate Limiting**
+- Backend enforces tier-based limits per user
+- Prevent API abuse and cost overruns
+- Can implement sophisticated throttling strategies
+
+**3. Cost Control**
+- Single billing relationship with each AI provider
+- Volume discounts negotiable at scale
+- Can switch providers without mobile app updates
+
+**4. Service Abstraction**
+- Mobile app doesn't know which AI provider is used
+- Can A/B test different providers
+- Failover to backup services seamlessly
+
+**5. Credential Management**
+- API keys rotated server-side with zero downtime
+- No need for users to manage multiple API accounts
+- Simplified onboarding (no API key setup required)
+
+### Competitive Advantage
+
+Unlike competitors who require users to provide their own API keys:
+- **MobVibe**: "Just sign in and start building" (frictionless)
+- **Competitors**: "First, sign up for Anthropic, get API key, paste it here..." (friction)
+
+This architecture is a **product differentiator** and **security best practice**, not a limitation.
+
+---
+
 ## Core Components
 
 ### Mobile App (React Native)
@@ -150,6 +269,8 @@ Preview auto-reloads
   - **Icon Gen Tab:** AI-powered app icon creation
 - **Hamburger Menu:** Settings, profile, account
 
+See [design-system.md](./design-system.md) for UI/UX specifications and [features-and-journeys.md](./features-and-journeys.md) for user journey details.
+
 **Key Features:**
 - WebSocket for real-time updates
 - In-app WebView preview (no scanning needed)
@@ -158,16 +279,25 @@ Preview auto-reloads
 - Bottom tab navigation
 
 **Tech Stack:**
-- React Native 0.76+
-- Expo SDK 52
+- React Native 0.81
+- Expo SDK 54
 - Expo Router
 - NativeWind
 - Zustand (state)
 - React Query (server state)
 
+**Expo SDK 54 Benefits:**
+- React 19.1 support for better performance
+- Precompiled XCFrameworks for iOS (faster builds)
+- Modern architecture with improved stability
+
+See [implementation.md](./implementation.md) for complete technology specifications.
+
 ### Backend API (Supabase)
 
 **Purpose:** Fast request/response API layer (<5s)
+
+See [data-flow.md](./data-flow.md) for detailed API flow diagrams.
 
 **Edge Functions:**
 - `start-coding-session`: Validate, enqueue job, return immediately
@@ -254,7 +384,7 @@ const agent = new ClaudeAgent({
   systemPrompt: `You are an expert React Native developer building mobile apps with Expo.
 
   Guidelines:
-  - Use Expo SDK 52+ and React Native 0.76+
+  - Use Expo SDK 54 and React Native 0.81
   - Use TypeScript with strict mode
   - Use Expo Router for navigation
   - Use NativeWind for styling

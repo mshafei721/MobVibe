@@ -1,13 +1,24 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: architecture.md, data-flow.md, features-and-journeys.md, design-system.md
+-->
+
 # MobVibe Implementation Guide
 
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
+
 > Technical stack, code structure, and implementation patterns
+
+See [architecture.md](./architecture.md) for system architecture overview and [data-flow.md](./data-flow.md) for complete data flow diagrams.
 
 ## Tech Stack
 
 ### Mobile App
 ```yaml
-Framework: React Native 0.76+
-Platform: Expo SDK 52
+Framework: React Native 0.81
+Platform: Expo SDK 54
 Language: TypeScript 5.3+
 Routing: Expo Router (file-based)
 Styling: NativeWind (Tailwind for RN)
@@ -16,6 +27,12 @@ Server State: React Query (TanStack Query)
 UI Components: Custom + Expo built-ins
 WebSocket: native WebSocket API
 ```
+
+**Expo SDK 54 Improvements:**
+- React Native 0.81 integration
+- React 19.1 support for better performance
+- Precompiled XCFrameworks for iOS (faster builds)
+- Modern architecture with improved stability
 
 ### Backend
 ```yaml
@@ -28,11 +45,45 @@ Realtime: Supabase Realtime (WebSocket)
 ```
 
 ### AI Services
+
+**Server-Side API Proxy Architecture**
+
+All AI services are proxied through backend Edge Functions. Users never provide or see API keys.
+
 ```yaml
 Code Generation: Claude Agent SDK (claude-sonnet-4-5)
+  - Proxied through: Worker Service
+  - API Key Location: Worker Service environment
+  - User Access: Via /start-coding-session endpoint
+
 Icon Generation: Nano Banana API
+  - Proxied through: supabase/functions/generate-icon
+  - API Key Location: Edge Function secrets
+  - User Access: Prompts only, receives signed URLs
+
+3D Logo Generation: Meshy AI / Luma AI
+  - Proxied through: supabase/functions/generate-3d-logo
+  - API Key Location: Edge Function secrets
+  - User Access: Prompts only, receives signed URLs
+
 Sound Generation: ElevenLabs API
+  - Proxied through: supabase/functions/generate-sound
+  - API Key Location: Edge Function secrets
+  - User Access: Text prompts only, receives signed URLs
+
+Voice Transcription: Google Cloud Speech-to-Text (fallback)
+  - Proxied through: supabase/functions/transcribe-audio
+  - API Key Location: Edge Function secrets
+  - User Access: Audio upload, receives transcript text
 ```
+
+**Security Model:**
+- Mobile app contains ZERO AI service API keys
+- All AI API keys stored in backend environment variables
+- Backend enforces authentication, rate limiting, and usage tracking
+- Users access AI services only through authenticated endpoints
+
+See [architecture.md](./architecture.md) for complete server-side proxy architecture details and [data-flow.md](./data-flow.md) for detailed AI service integration flows.
 
 ### Infrastructure
 ```yaml
@@ -48,6 +99,8 @@ Monitoring: Sentry
 ---
 
 ## Database Schema
+
+See [architecture.md](./architecture.md) for database architecture context.
 
 ### Core Tables
 
@@ -201,6 +254,8 @@ CREATE POLICY "Users can update own project files"
 
 ## Claude Agent SDK Configuration
 
+See [architecture.md](./architecture.md) for Claude Agent architectural role and [data-flow.md](./data-flow.md) for coding session flow details.
+
 ### Agent Setup
 
 ```typescript
@@ -235,7 +290,7 @@ Your Mission:
 Build a mobile app based on the user's requirements.
 
 Guidelines:
-1. Use Expo SDK 52+ and React Native 0.76+
+1. Use Expo SDK 54 and React Native 0.81
 2. Use TypeScript with strict mode
 3. Use Expo Router for navigation (file-based routing in app/ folder)
 4. Use NativeWind for styling (Tailwind CSS for React Native)
@@ -747,6 +802,8 @@ export function useRealtimeSession(sessionId: string) {
 
 ## Mobile App Structure
 
+See [design-system.md](./design-system.md) for UI component specifications and [features-and-journeys.md](./features-and-journeys.md) for user journey implementations.
+
 ### File Organization
 
 ```
@@ -1038,13 +1095,20 @@ async function destroySandbox(sandboxId: string): Promise<void> {
 ### Mobile App (.env)
 
 ```bash
-# Public keys only (safe to expose)
+# ✅ ONLY PUBLIC KEYS (safe to expose)
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-# ❌ REMOVED (security risk):
-# EXPO_PUBLIC_OPENAI_API_KEY - Now proxied through backend
-# EXPO_PUBLIC_ELEVENLABS_API_KEY - Now proxied through backend
+# ❌ NO AI SERVICE KEYS IN MOBILE APP
+# All AI APIs are server-side proxied:
+# - Anthropic Claude API → Backend Worker Service
+# - Nano Banana API → Edge Function /generate-icon
+# - Meshy/Luma AI → Edge Function /generate-3d-logo
+# - ElevenLabs API → Edge Function /generate-sound
+# - OpenAI API → Edge Function /ai-service (future)
+#
+# This is a SECURITY FEATURE, not a limitation.
+# Users never need to provide or manage AI API keys.
 ```
 
 ### Backend (Supabase Edge Functions)

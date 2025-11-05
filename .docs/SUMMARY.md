@@ -1,6 +1,37 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: All documentation files
+-->
+
 # MobVibe Documentation Summary
 
 > Complete overview of all documentation with new features
+
+## Table of Contents
+
+### Core Documentation
+- **[architecture.md](./architecture.md)** - System architecture, data flow, component relationships
+- **[implementation.md](./implementation.md)** - Technical stack, database schema, code examples
+- **[data-flow.md](./data-flow.md)** - Comprehensive data flows for every feature
+- **[features-and-journeys.md](./features-and-journeys.md)** - Feature matrix, user personas, user flows
+
+### Design & UX
+- **[design-system.md](./design-system.md)** - Native iOS/Android design system, components, patterns
+- **[vibecode/native_ui.md](./vibecode/native_ui.md)** - Native UI enhancements and component guidelines
+- **[UX-CHANGES.md](./UX-CHANGES.md)** - Major UX revision (QR code → in-app WebView preview)
+
+### Planning & Strategy
+- **[roadmap.md](./roadmap.md)** - Development timeline, milestones, success metrics
+- **[recommendations.md](./recommendations.md)** - Technical recommendations and best practices
+- **[analysis.md](./analysis.md)** - Codex recommendations analysis with 2025 best practices
+
+### Root Documentation
+- **[../README.md](../README.md)** - Project overview and quick start guide
+
+### Visualization
+- **[DOCUMENTATION-GRAPH.md](./DOCUMENTATION-GRAPH.md)** - Visual Mermaid graphs showing all documentation relationships
 
 ## Documentation Structure
 
@@ -177,7 +208,7 @@ Mobile App - Real-time updates
 ## Tech Stack
 
 ### Mobile App
-- **Framework**: React Native 0.76+ with Expo SDK 52
+- **Framework**: React Native 0.81 with Expo SDK 54
 - **Language**: TypeScript 5.3+
 - **Routing**: Expo Router (file-based)
 - **Styling**: NativeWind (Tailwind for RN)
@@ -185,6 +216,12 @@ Mobile App - Real-time updates
 - **Voice**: @jamsch/expo-speech-recognition
 - **WebView**: react-native-webview
 - **UI Library**: React Native Paper / NativeBase
+
+**Expo SDK 54 Improvements:**
+- React Native 0.81 integration
+- React 19.1 support for better performance
+- Precompiled XCFrameworks for iOS (faster builds)
+- Modern architecture with improved stability
 
 ### Backend
 - **Platform**: Supabase
@@ -483,6 +520,93 @@ Generate 3D logos, convert to 2D app icons
 
 **Status**: Complete documentation suite ✅ | All features documented ✅ | Ready for development ✅
 
-**Total Documentation**: 9 files, 15,000+ lines, comprehensive coverage
+**Total Documentation**: 11 files, 15,000+ lines, comprehensive coverage
 
 **Next Steps**: Begin Phase 1, Week 1-2 (Foundation) implementation
+
+---
+
+## Glossary of Key Terms
+
+| Term | Definition |
+|------|------------|
+| **Claude Agent SDK** | Anthropic's SDK for building AI agents that can execute code and use tools |
+| **Supabase** | Open-source Firebase alternative providing database, auth, storage, and edge functions |
+| **React Native** | Framework for building native mobile apps using JavaScript and React |
+| **Expo SDK 54** | Development platform for React Native with managed workflow, React 19.1 support, and precompiled XCFrameworks for faster iOS builds |
+| **WebView Preview** | In-app browser component that displays generated apps without QR scanning |
+| **Bottom Tab Navigation** | Primary navigation pattern with 4 tabs: Code, Preview, Integrations, Icon Gen |
+| **Worker Service** | Long-running backend service that manages Claude Agent sessions and sandboxes |
+| **Sandbox** | Isolated Fly.io microVM where Claude Agent executes code generation |
+| **Edge Functions** | Supabase serverless functions with <5s timeout for API endpoints |
+| **EAS Update** | Expo Application Services for deploying JavaScript updates to apps |
+| **Nano Banana API** | AI service for generating app icons and assets |
+| **RLS** | Row Level Security - PostgreSQL security model for user data access control |
+| **JWT** | JSON Web Token - Authentication token format used by Supabase |
+| **NativeWind** | Tailwind CSS implementation for React Native styling |
+| **Zustand** | Lightweight state management library for React applications |
+
+---
+
+## Change Log
+
+### 2025-11-05 - Documentation Normalization
+
+**Major Update:** Complete documentation normalization with front-matter, cross-links, and consistent structure.
+
+#### Changes Made
+
+**All Documentation Files:**
+- ✅ Added HTML front-matter with Status, Owner, Last updated, Related fields
+- ✅ Added "Source of truth" note linking to SUMMARY.md under each H1
+- ✅ Created .bak backup files for all modified documents
+- ✅ Normalized terminology across all files
+
+**Core Technical Documents:**
+- ✅ [architecture.md](./architecture.md) - Added cross-links to implementation.md, data-flow.md, design-system.md, features-and-journeys.md
+- ✅ [implementation.md](./implementation.md) - Added cross-links to architecture.md, data-flow.md, design-system.md, features-and-journeys.md
+- ✅ [data-flow.md](./data-flow.md) - Added cross-links to architecture.md, implementation.md, features-and-journeys.md, design-system.md
+
+**UX/Design Documents:**
+- ✅ [features-and-journeys.md](./features-and-journeys.md) - Added cross-links to implementation.md, data-flow.md, UX-CHANGES.md, design-system.md
+- ✅ [design-system.md](./design-system.md) - Added cross-links to features-and-journeys.md, UX-CHANGES.md, vibecode/native_ui.md
+- ✅ [vibecode/native_ui.md](./vibecode/native_ui.md) - Expanded structure, added H1 title, TOC, and cross-links to design-system.md, implementation.md
+
+**Planning Documents:**
+- ✅ [roadmap.md](./roadmap.md) - Added cross-links to recommendations.md, features-and-journeys.md, architecture.md, implementation.md, analysis.md
+- ✅ [recommendations.md](./recommendations.md) - Removed BOM character, added cross-links to roadmap.md, architecture.md, implementation.md, analysis.md
+- ✅ [analysis.md](./analysis.md) - Added cross-links to architecture.md, implementation.md, recommendations.md, roadmap.md
+- ✅ [UX-CHANGES.md](./UX-CHANGES.md) - Added cross-links to features-and-journeys.md, design-system.md, implementation.md, roadmap.md, architecture.md
+
+**This Document:**
+- ✅ Added front-matter metadata
+- ✅ Added Table of Contents section with all documentation files
+- ✅ Added Glossary of Key Terms
+- ✅ Added this Change Log section
+
+#### Impact
+
+- **Improved Navigation:** Cross-links enable easy navigation between related topics
+- **Better Discoverability:** Table of Contents provides overview of all documentation
+- **Consistent Structure:** All files follow same front-matter and formatting patterns
+- **Terminology Standardization:** Key terms used consistently across all documents
+- **Recovery Safety:** Backup files (.bak) created for all modified documents
+- **Professional Quality:** Enterprise-grade documentation structure
+
+#### Files Modified
+
+- architecture.md → architecture.md.bak (15K)
+- implementation.md → implementation.md.bak (29K)
+- data-flow.md → data-flow.md.bak (85K)
+- features-and-journeys.md → features-and-journeys.md.bak (47K)
+- design-system.md → design-system.md.bak (24K)
+- vibecode/native_ui.md → vibecode/native_ui.md.bak (1.7K)
+- roadmap.md → roadmap.md.bak (10K)
+- recommendations.md → recommendations.md.bak (1.8K)
+- analysis.md → analysis.md.bak (2.8K)
+- UX-CHANGES.md → UX-CHANGES.md.bak (12K)
+- SUMMARY.md → SUMMARY.md.bak (16K)
+
+**Total Files Updated:** 11 documentation files
+**Total Backups Created:** 11 .bak files
+**Documentation Cross-Links Added:** 50+ strategic cross-references

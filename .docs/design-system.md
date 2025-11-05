@@ -1,6 +1,15 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: features-and-journeys.md, UX-CHANGES.md, vibecode/native_ui.md
+-->
+
 # MobVibe Design System
 
 > Native iOS & Android design system with platform-specific patterns
+
+> See [SUMMARY.md](../SUMMARY.md) for complete documentation index.
 
 ## Table of Contents
 1. [Design Philosophy](#design-philosophy)
@@ -437,6 +446,41 @@ export const textStyles = {
 </TouchableOpacity>
 ```
 
+**Floating Action Button (Preview Tab)**
+```typescript
+<TouchableOpacity
+  style={{
+    position: 'absolute',
+    bottom: spacing[6],
+    right: spacing[6],
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary[500],
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.ios.lg,
+    zIndex: 1000,
+  }}
+  activeOpacity={0.8}
+  onPress={openCodeViewer}
+>
+  <Icon name="code-document" size={24} color={colors.background.light} />
+</TouchableOpacity>
+```
+
+**States:**
+- **Default:** Primary color, visible shadow
+- **Pressed:** Slightly scaled down (0.95), reduced opacity
+- **Dismissed:** Fade out animation when code viewer opens
+- **Reappear:** Fade in when code viewer closes
+
+**Positioning:**
+- Fixed position within WebView container
+- Bottom-right corner (16-24px from edges)
+- Above all preview content
+- Below dismiss gestures area
+
 ### Input Fields
 
 **Text Input**
@@ -532,6 +576,7 @@ export const textStyles = {
 ```
 
 ### Bottom Tabs
+> See [vibecode/native_ui.md](vibecode/native_ui.md) for native bottom tab implementation with react-native-bottom-tabs
 
 **Tab Bar (Platform-Specific)**
 ```typescript
@@ -669,6 +714,61 @@ export const textStyles = {
 ```
 
 ### Modals
+
+**Code Viewer Overlay (From Floating Button)**
+```typescript
+<Modal
+  animationType="slide"
+  transparent={false}
+  visible={isCodeViewerOpen}
+  presentationStyle="pageSheet" // iOS: allows swipe-down dismiss
+>
+  <View style={{
+    flex: 1,
+    backgroundColor: colors.code.background,
+  }}>
+    {/* Header with dismiss options */}
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: spacing[4],
+      paddingTop: Platform.OS === 'ios' ? spacing[12] : spacing[4],
+      borderBottomWidth: 1,
+      borderBottomColor: colors.gray[800],
+    }}>
+      <TouchableOpacity onPress={onClose}>
+        <Icon name="chevron-down" size={24} color={colors.gray[300]} />
+      </TouchableOpacity>
+      <Text style={{
+        ...textStyles.h4,
+        color: colors.code.text,
+      }}>
+        Code Viewer
+      </Text>
+      <TouchableOpacity onPress={onClose}>
+        <Icon name="close" size={24} color={colors.gray[300]} />
+      </TouchableOpacity>
+    </View>
+
+    {/* Code content */}
+    <ScrollView style={{ flex: 1 }}>
+      <CodeViewer code={generatedCode} />
+    </ScrollView>
+  </View>
+</Modal>
+```
+
+**Dismiss Gestures:**
+- Swipe down from top → Dismiss (iOS native gesture)
+- Tap X button → Close modal
+- Tap back button → Close modal (Android)
+- Optional: Tap outside → Dismiss
+
+**Animation:**
+- Enter: Slide up from bottom (300ms)
+- Exit: Slide down to bottom (250ms)
+- Floating button: Fade out on open, fade in on close
 
 **Bottom Sheet (iOS) / Full Modal (Android)**
 ```typescript
@@ -884,6 +984,7 @@ export const textStyles = {
 ## Navigation Patterns
 
 ### Bottom Tab Navigation
+> See [features-and-journeys.md](features-and-journeys.md#screen-3-coding-session-active---bottom-tab-navigation) for user journey through Bottom Tab Navigation
 
 **Implementation**
 ```typescript
@@ -948,15 +1049,82 @@ const Drawer = createDrawerNavigator();
 
 ## Interaction Patterns
 
+### Floating Button Interactions
+
+**Preview Tab Floating Button:**
+```typescript
+// Floating button component with interaction handling
+const FloatingCodeButton = () => {
+  const [isPressed, setIsPressed] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    setIsPressed(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    setIsPressed(false);
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    openCodeViewer();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={handlePress}
+        style={styles.floatingButton}
+      >
+        <Icon name="code-document" size={24} color="#fff" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+```
+
+**User Journey:**
+1. User on Preview tab → Sees floating button
+2. Taps button → Haptic feedback + scale animation
+3. Code viewer slides up → Floating button fades out
+4. User reviews code → Can scroll, zoom
+5. Swipe down/tap X/tap back → Code viewer dismisses
+6. Returns to preview → Floating button fades in
+
+**Accessibility:**
+```typescript
+<TouchableOpacity
+  accessible={true}
+  accessibilityLabel="View generated code"
+  accessibilityHint="Opens code viewer overlay showing all generated files"
+  accessibilityRole="button"
+>
+  {/* Button content */}
+</TouchableOpacity>
+```
+
 ### Haptic Feedback
+> See [vibecode/native_ui.md](vibecode/native_ui.md) for native haptic implementation patterns
 
 ```typescript
 import * as Haptics from 'expo-haptics';
 
-// Light tap (button press)
+// Light tap (button press, floating button tap)
 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-// Medium tap (important action)
+// Medium tap (important action, opening code viewer)
 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
 // Heavy tap (critical action)

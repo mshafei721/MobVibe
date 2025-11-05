@@ -1,6 +1,15 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: implementation.md, data-flow.md, UX-CHANGES.md, design-system.md
+-->
+
 # MobVibe Features & User Journeys
 
 > Complete feature matrix and user experience flows
+
+> See [SUMMARY.md](../SUMMARY.md) for complete documentation index.
 
 ## Table of Contents
 1. [Feature Matrix](#feature-matrix)
@@ -32,6 +41,8 @@
 - **Sort & Filter** - By date, name, status
 
 #### AI Coding Session (Bottom Tab Navigation)
+> See [design-system.md](design-system.md) for detailed Bottom Tab Navigation UI patterns
+
 - **Code Tab**
   - File tree navigation with live indicators
   - Syntax highlighted code viewer (readonly)
@@ -44,6 +55,7 @@
   - Device frame simulation (iOS/Android)
   - Preview expiry indicator
   - Reload and screenshot buttons
+  - Floating code viewer button (quick access)
 - **Integrations Tab**
   - Third-party service connections
   - API key management
@@ -51,7 +63,7 @@
   - Auth provider integration
   - Push notifications config
 - **Icon Gen Tab**
-  - Nano Banana AI icon generation
+  - Nano Banana API icon generation
   - Describe icon in natural language
   - Multiple style options
   - Preview variations
@@ -90,7 +102,7 @@
 - **Smart Auto-Complete** - Finish your prompts intelligently
 
 #### AI Asset Generation
-- **Icon Generator** - Nano Banana AI powered app icons
+- **Icon Generator** - Nano Banana API powered app icons
 - **Sound Generator** - ElevenLabs alert/notification sounds
 - **Background Images** - Generate hero/splash images
 - **Asset Library** - Manage all generated assets
@@ -354,8 +366,10 @@ Screen: Create Your First App
 ```
 
 **5. Coding Session (5-10 minutes)**
+> See [implementation.md](implementation.md) for technical WebView integration details
+
 ```
-Screen: Coding Session with Bottom Tabs
+Screen: Coding Session with Bottom Tab Navigation
 
 ┌─────────────────────────────────────┐
 │ ☰  Daily Habits Tracker      [⋮]   │ ← Header with menu
@@ -387,7 +401,7 @@ Bottom Tab Navigation:
 ├─ Code (active) - File tree + code viewer
 ├─ Preview - WebView with live app
 ├─ 🔗 Integrations - API connections
-└─ 🎨 Icon Gen - Nano Banana generator
+└─ 🎨 Icon Gen - Nano Banana API generator
 
 User Actions Available:
 ├─ Switch tabs to see preview/integrations/icon gen
@@ -398,6 +412,8 @@ User Actions Available:
 ```
 
 **6. Preview & Completion (2 minutes)**
+> See [UX-CHANGES.md](UX-CHANGES.md) for WebView preview implementation details
+
 ```
 Claude completes generation
     ↓
@@ -716,6 +732,7 @@ Modal updates:
 ---
 
 ### Screen 3: Coding Session (Active) - Bottom Tab Navigation
+> See [design-system.md](design-system.md#navigation-patterns) for Bottom Tab Navigation implementation details
 
 **Layout:**
 ```
@@ -732,7 +749,7 @@ Modal updates:
 │ - Code: File tree + viewer          │
 │ - Preview: WebView                  │
 │ - Integrations: API connections     │
-│ - Icon Gen: Nano Banana UI          │
+│ - Icon Gen: Nano Banana API UI      │
 │                                     │
 │                                     │
 │                                     │
@@ -768,6 +785,8 @@ Modal updates:
 ```
 
 **Preview Tab:**
+> See [data-flow.md](data-flow.md) for WebView SSE event streaming details
+
 ```
 ┌─────────────────────────────────────┐
 │ 📱 Live Preview                     │
@@ -779,7 +798,7 @@ Modal updates:
 │ │  • Interactive                  ││
 │ │  • Real-time updates            ││
 │ │  • Full functionality           ││
-│ │                                 ││
+│ │                          [📄]   ││ ← Floating code button
 │ └─────────────────────────────────┘│
 │                                     │
 │ [🔄 Reload] [📸 Screenshot]        │
@@ -787,6 +806,12 @@ Modal updates:
 ├─────────────────────────────────────┤
 │ [💾 Code] [📱 Preview] [🔗] [🎨]   │
 └─────────────────────────────────────┘
+
+Floating Button Action:
+  Tap [📄] → Code viewer overlay opens
+           → Shows full app code
+           → Dismiss: Back | X | Swipe down
+           → Returns to preview context
 ```
 
 **Integrations Tab:**
@@ -818,6 +843,7 @@ Modal updates:
 ```
 ┌─────────────────────────────────────┐
 │ 🎨 Generate App Icon                │
+│ (Powered by Nano Banana API)        │
 │                                     │
 │ Describe your app icon:             │
 │ ┌─────────────────────────────────┐│
@@ -908,6 +934,7 @@ Modal updates:
 - **Swipe left on project** → Delete option
 - **Swipe right on project** → Share option
 - **Swipe down on coding session** → Refresh status
+- **Swipe down on code viewer (from floating button)** → Dismiss overlay
 - **Swipe up from bottom** → New prompt sheet
 - **Swipe between bottom tabs** → Code/Preview/Integrations/Icon Gen navigation
 
@@ -1076,6 +1103,8 @@ User sees:
 ### Preview Issues
 
 **Scenario: WebView Load Failure**
+> See [UX-CHANGES.md](UX-CHANGES.md) for WebView error handling details
+
 ```
 User taps Preview tab
     ↓

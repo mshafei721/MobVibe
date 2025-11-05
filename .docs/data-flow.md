@@ -1,6 +1,17 @@
+<!--
+Status: stable
+Owner: MobVibe Core Team
+Last updated: 2025-11-05
+Related: architecture.md, implementation.md, features-and-journeys.md, design-system.md
+-->
+
 # MobVibe Data Flow Architecture
 
+> See [SUMMARY.md](./SUMMARY.md) for complete documentation index.
+
 > Complete data flow diagrams: Input → Processing → Output for every feature
+
+See [architecture.md](./architecture.md) for system architecture overview and [implementation.md](./implementation.md) for technical implementation details.
 
 ## Table of Contents
 1. [System Overview](#system-overview)
@@ -58,9 +69,13 @@
 - **Storage**: Supabase (Postgres + Storage + Realtime)
 - **External**: AI services (Claude, Nano Banana, Meshy, ElevenLabs)
 
+See [architecture.md](./architecture.md) for detailed component descriptions and [implementation.md](./implementation.md) for technical specifications.
+
 ---
 
 ## Authentication Flow
+
+See [features-and-journeys.md](./features-and-journeys.md) for complete user authentication journey.
 
 ### Input
 - **Source**: User interaction (mobile app)
@@ -146,10 +161,15 @@
 
 ## Coding Session Flow
 
+**Server-Side API Proxy:** Anthropic Claude API key is stored and used exclusively by the Worker Service. Users never see or provide the Claude API key.
+
+See [architecture.md](./architecture.md) for Worker Service architecture and [implementation.md](./implementation.md) for Claude Agent SDK implementation.
+
 ### Input
 - **Source**: User prompt (text or voice)
 - **Data**: Natural language description of app
 - **Trigger**: "Start Building" button
+- **No API Keys**: User never provides Anthropic Claude API key
 
 ### Processing
 
@@ -233,8 +253,13 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │ Step 6: Claude Agent Initialization (Worker Service)            │
 │ Location: Worker Service                                         │
+│ Security: Backend adds Anthropic API key                        │
 │ Process:                                                         │
-│ 1. Create Anthropic client                                      │
+│ 1. Create Anthropic client:                                     │
+│    new Anthropic({                                              │
+│      apiKey: process.env.ANTHROPIC_API_KEY                      │
+│      ^^^ Server-side key from environment variable              │
+│    })                                                            │
 │ 2. Load system prompt (React Native expert)                     │
 │ 3. Configure tools (bash, filesystem, expo)                     │
 │ 4. Prepare conversation with user prompt                        │
@@ -245,10 +270,13 @@
 │ Step 7: Claude Coding Loop (Worker + Sandbox)                   │
 │ Location: Worker Service orchestrates, Sandbox executes         │
 │ Duration: 5-30 minutes                                           │
+│ Security: All Claude API calls use server-side key              │
 │ Process:                                                         │
 │ Loop until Claude says "done":                                   │
 │   1. Claude thinks → Emit "thinking" event                      │
 │   2. Claude uses tool (bash/write_file/etc)                     │
+│      • All API requests use backend key                         │
+│      • Mobile never sees Anthropic API traffic                  │
 │   3. Tool executes in sandbox                                   │
 │   4. Emit event to Realtime:                                    │
 │      • "terminal" for bash commands                             │
@@ -325,6 +353,8 @@
 ---
 
 ## Voice Input Flow
+
+See [features-and-journeys.md](./features-and-journeys.md) for voice input user journey details.
 
 ### Input
 - **Source**: User holds microphone button
@@ -428,16 +458,22 @@
 
 ## Icon Generation Flow
 
+**Server-Side API Proxy:** Nano Banana API key is stored and used exclusively by the backend. Mobile app sends only the prompt and receives signed URLs.
+
+See [features-and-journeys.md](./features-and-journeys.md) for icon generation user journey and [design-system.md](./design-system.md) for icon design specifications.
+
 ### Input
 - **Source**: User text prompt in Icon Gen tab
 - **Data**: Icon description, style preference
 - **Trigger**: "Generate Icon" button
+- **No API Keys**: User never provides or sees Nano Banana API key
 
 ### Processing
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Step 1: Icon Request (Mobile)                                   │
+│ Security: User authenticated, prompt only (no API key)          │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -447,12 +483,15 @@
 │ • style: "modern" | "minimal" | "bold"                          │
 │ • projectId: "uuid-123"                                          │
 │ • iterations: 3 (generate 3 variations)                         │
+│ • auth: JWT token (Supabase Auth)                               │
+│ ❌ NO API KEYS from user                                        │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Step 2: Rate Limiting Check (Edge Function)                     │
+│ Step 2: Backend Authentication & Rate Limiting                  │
 │ Location: supabase/functions/generate-icon                      │
+│ Security: Validates JWT, enforces rate limits                   │
 │ Process:                                                         │
 │ 1. Validate JWT → Extract user_id                               │
 │ 2. Check usage table:                                            │
@@ -465,14 +504,17 @@
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Step 3: Generate Variations (Edge Function)                     │
-│ Location: Edge Function                                          │
+│ Step 3: Server-Side API Proxy to Nano Banana                    │
+│ Location: Edge Function (backend only)                          │
 │ Duration: 3-8 seconds per variation                             │
+│ Security: Backend adds API key, user never sees it              │
 │ Process:                                                         │
 │ For i in [1, 2, 3]:                                              │
-│   1. Call Nano Banana API:                                      │
+│   1. Backend calls Nano Banana API:                             │
 │      POST https://api.nanobanana.com/v1/generate                │
-│      Headers: Authorization: Bearer <server_key>                │
+│      Headers:                                                    │
+│        Authorization: Bearer <NANO_BANANA_API_KEY>              │
+│        ^^^ Server-side key from environment variable            │
 │      Body: {                                                     │
 │        prompt: "{prompt} variation {i}",                        │
 │        size: "1024x1024",                                        │
@@ -480,7 +522,7 @@
 │        style: "{style}"                                          │
 │      }                                                           │
 │   2. Receive imageUrl from Nano Banana                          │
-│   3. Download image data                                        │
+│   3. Download image data (backend downloads, not mobile)        │
 │   4. Upload to Supabase Storage:                                │
 │      • Bucket: project-files                                    │
 │      • Path: {projectId}/icons/icon-{timestamp}-v{i}.png        │
@@ -572,16 +614,20 @@
 
 ## 3D Logo Generation Flow
 
+**Server-Side API Proxy:** Meshy AI and Luma AI keys are stored and used exclusively by the backend. Users never see or provide API keys.
+
 ### Input
 - **Source**: User text prompt in Icon Gen tab (3D mode)
 - **Data**: Logo description, 3D style preference
 - **Trigger**: "Generate 3D Logo" button
+- **No API Keys**: User never provides Meshy or Luma API keys
 
 ### Processing
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Step 1: 3D Logo Request (Mobile)                                │
+│ Security: User authenticated, prompt only (no API key)          │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -591,50 +637,60 @@
 │ • style3d: "low-poly" | "realistic" | "stylized"               │
 │ • format: "glb" | "fbx" (3D model formats)                      │
 │ • projectId: "uuid-123"                                          │
+│ • auth: JWT token (Supabase Auth)                               │
+│ ❌ NO API KEYS from user                                        │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Step 2: Service Selection (Edge Function)                       │
+│ Step 2: Backend Service Selection & Authentication              │
 │ Location: supabase/functions/generate-3d-logo                   │
+│ Security: Backend validates user, selects service               │
 │ Process:                                                         │
-│ 1. Check user tier:                                              │
+│ 1. Validate JWT → Extract user_id                               │
+│ 2. Check user tier:                                              │
 │    • Free: Luma AI ($1/capture)                                 │
 │    • Pro: Meshy AI (monthly credits)                            │
-│ 2. Route to appropriate service                                 │
+│ 3. Route to appropriate service                                 │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Option A: Meshy AI (Pro Users)                                  │
-│ Location: Edge Function                                          │
+│ Option A: Server-Side Proxy to Meshy AI (Pro Users)             │
+│ Location: Edge Function (backend only)                          │
 │ Duration: 30-90 seconds                                          │
+│ Security: Backend adds API key, user never sees it              │
 │ Process:                                                         │
-│ 1. Call Meshy API:                                               │
+│ 1. Backend calls Meshy API:                                      │
 │    POST https://api.meshy.ai/v1/text-to-3d                      │
-│    Headers: Authorization: Bearer <server_key>                  │
+│    Headers:                                                      │
+│      Authorization: Bearer <MESHY_API_KEY>                      │
+│      ^^^ Server-side key from environment variable              │
 │    Body: {                                                       │
 │      prompt: "{prompt}",                                         │
 │      art_style: "{style3d}",                                     │
 │      output_format: "glb"                                        │
 │    }                                                             │
 │ 2. Poll for completion (task_id)                                │
-│ 3. Download .glb file                                            │
+│ 3. Download .glb file (backend downloads)                       │
 │ 4. Convert to PNG renderings (front, side, top views)          │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Option B: Luma AI (Free Users)                                  │
-│ Location: Edge Function                                          │
+│ Option B: Server-Side Proxy to Luma AI (Free Users)             │
+│ Location: Edge Function (backend only)                          │
 │ Duration: 20-60 seconds                                          │
+│ Security: Backend adds API key, user never sees it              │
 │ Process:                                                         │
-│ 1. Call Luma Genie API:                                          │
+│ 1. Backend calls Luma Genie API:                                 │
 │    POST https://api.lumalabs.ai/v1/genie                        │
-│    Headers: Authorization: Bearer <server_key>                  │
+│    Headers:                                                      │
+│      Authorization: Bearer <LUMA_API_KEY>                       │
+│      ^^^ Server-side key from environment variable              │
 │    Body: { prompt: "{prompt}" }                                 │
 │ 2. Receive 3D model URL                                          │
-│ 3. Download model                                                │
+│ 3. Download model (backend downloads)                           │
 │ 4. Render to PNG images                                         │
 └─────────────────────────────────────────────────────────────────┘
                             │
@@ -687,10 +743,14 @@
 
 ## Integrations Flow
 
+See [features-and-journeys.md](./features-and-journeys.md) for complete integration user journeys.
+
 ### Overview
 Each integration follows similar pattern: Connect → Configure → Apply to Code
 
 ### Sound Generation Integration
+
+**Server-Side API Proxy:** ElevenLabs API key is stored and used exclusively by the backend. Users never see or provide the API key.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -698,22 +758,28 @@ Each integration follows similar pattern: Connect → Configure → Apply to Cod
 │ • Integration: "Sounds"                                          │
 │ • Action: "Add UI sound effects"                                │
 │ • Sounds requested: ["tap", "success", "error", "notification"] │
+│ • auth: JWT token (Supabase Auth)                               │
+│ ❌ NO API KEYS from user                                        │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ Step 1: Sound Generation (Edge Function)                        │
+│ Step 1: Server-Side API Proxy to ElevenLabs                     │
 │ Location: supabase/functions/generate-sounds                    │
+│ Security: Backend adds API key, user never sees it              │
 │ Process:                                                         │
 │ For each sound type:                                             │
-│ 1. Call ElevenLabs Sound Effects API:                           │
+│ 1. Backend calls ElevenLabs Sound Effects API:                  │
 │    POST https://api.elevenlabs.io/v1/sound-generation           │
+│    Headers:                                                      │
+│      xi-api-key: <ELEVENLABS_API_KEY>                           │
+│      ^^^ Server-side key from environment variable              │
 │    Body: {                                                       │
 │      text: "short {sound_type} sound effect",                   │
 │      duration_seconds: 0.5,                                      │
 │      prompt_influence: 0.8                                       │
 │    }                                                             │
-│ 2. Download audio buffer (MP3)                                  │
+│ 2. Download audio buffer (MP3) - backend downloads              │
 │ 3. Upload to Storage:                                            │
 │    • Path: {projectId}/sounds/{sound_type}.mp3                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -950,6 +1016,8 @@ Each integration follows similar pattern: Connect → Configure → Apply to Cod
 ---
 
 ## Preview Flow
+
+See [architecture.md](./architecture.md) for preview architecture and [implementation.md](./implementation.md) for WebView implementation details.
 
 ### Input
 - **Source**: User taps Preview tab
@@ -1234,4 +1302,122 @@ Third-Party Integrations (User-Configured)
 
 ---
 
-**Status**: Comprehensive data flow documentation complete ✅ | All inputs/processing/outputs defined ✅ | Dependencies mapped ✅
+## Security Architecture Summary
+
+### Server-Side API Proxy Model
+
+**All external AI services are proxied through the backend:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    SECURITY ARCHITECTURE                     │
+└──────────────────────────────────────────────────────────────┘
+
+Mobile App Layer (Client)
+├─ Contains: ONLY Supabase public keys
+├─ Sends: User prompts, auth tokens
+├─ Receives: Signed URLs, processed results
+└─ ❌ ZERO AI service API keys
+
+Backend API Layer (Supabase Edge Functions)
+├─ Validates: JWT authentication
+├─ Enforces: Rate limiting by user tier
+├─ Adds: AI service API keys from environment
+├─ Proxies: All AI API requests
+└─ Returns: Signed URLs to mobile
+
+AI Services (External)
+├─ Anthropic Claude: Code generation (Worker Service)
+├─ Nano Banana: Icon generation (Edge Function)
+├─ Meshy/Luma: 3D logo generation (Edge Function)
+├─ ElevenLabs: Sound generation (Edge Function)
+└─ All receive API keys from backend only
+```
+
+### API Proxy Endpoints
+
+**Every AI service has a dedicated proxy endpoint:**
+
+1. **POST /start-coding-session**
+   - Proxy for: Anthropic Claude API
+   - Key stored in: Worker Service environment
+   - User provides: Prompt only
+
+2. **POST /generate-icon**
+   - Proxy for: Nano Banana API
+   - Key stored in: Edge Function secrets
+   - User provides: Prompt + style
+
+3. **POST /generate-3d-logo**
+   - Proxy for: Meshy AI / Luma AI
+   - Key stored in: Edge Function secrets
+   - User provides: Prompt + style
+
+4. **POST /generate-sound**
+   - Proxy for: ElevenLabs API
+   - Key stored in: Edge Function secrets
+   - User provides: Text description
+
+5. **POST /transcribe-audio** (fallback)
+   - Proxy for: Google Cloud Speech-to-Text
+   - Key stored in: Edge Function secrets
+   - User provides: Audio file
+
+### Security Benefits
+
+**1. Zero API Key Exposure**
+- Mobile app reverse engineering reveals nothing
+- API keys rotated server-side with zero downtime
+- No user onboarding friction (no API key setup)
+
+**2. Centralized Control**
+- Backend enforces rate limits per user tier
+- Prevent API abuse and cost overruns
+- Track usage for billing and analytics
+
+**3. Service Abstraction**
+- Switch AI providers without mobile app updates
+- A/B test different providers
+- Failover to backup services seamlessly
+
+**4. Cost Optimization**
+- Single billing relationship with each provider
+- Volume discounts at scale
+- Better cost predictability
+
+**5. Competitive Advantage**
+- **MobVibe**: "Just sign in and start building"
+- **Competitors**: "First, sign up for 5 different AI services..."
+
+### Data Flow Pattern
+
+**Every AI feature follows this pattern:**
+
+```
+1. User Action (Mobile)
+   └─> Send: Prompt + Auth Token
+       └─> NO API keys
+
+2. Backend Authentication (Edge Function)
+   └─> Validate: JWT token
+   └─> Check: Rate limits
+   └─> Proceed if authorized
+
+3. Backend API Proxy (Edge Function)
+   └─> Add: AI service API key (from env)
+   └─> Call: External AI service
+   └─> Download: Result (backend downloads)
+
+4. Backend Storage (Supabase)
+   └─> Upload: Result to Storage
+   └─> Generate: Signed URL (1-hour expiry)
+
+5. Mobile Result (Client)
+   └─> Receive: Signed URL only
+   └─> Display: Result
+   └─> Still: NO API keys visible
+```
+
+---
+
+**Status**: Comprehensive data flow documentation complete ✅ | All inputs/processing/outputs defined ✅ | Dependencies mapped ✅ | Server-side API proxy architecture documented ✅
