@@ -1,0 +1,58 @@
+{
+  "date": "2025-11-06",
+  "phase": "01-discovery-baseline",
+  "status": "TEMPLATE - Requires manual measurement",
+  "platform": {
+    "expo_sdk": "52.0.0",
+    "react_native": "0.76.5",
+    "react": "18.3.1",
+    "node": "20.x",
+    "os": "Windows 11"
+  },
+  "tti": {
+    "cold_start_ms": null,
+    "warm_start_ms": null,
+    "method": "React Native Performance Monitor or manual stopwatch",
+    "device_tested": "iOS Simulator / Android Emulator",
+    "notes": "MANUAL: Start app in production mode (npm run start -- --no-dev --minify), measure time from app icon tap to interactive. Average over 3 runs."
+  },
+  "fps": {
+    "code_tab_scroll": null,
+    "preview_tab_scroll": null,
+    "file_tree_nav": null,
+    "target": 55,
+    "optimal": 60,
+    "method": "React Native Performance Monitor FPS counter",
+    "notes": "MANUAL: Enable FPS counter, navigate to each tab, scroll/interact, record FPS values. Test on low-end device simulator if possible."
+  },
+  "bundle_size": {
+    "ios_mb": null,
+    "android_mb": null,
+    "total_mb": null,
+    "method": "npx expo export --platform all && du -sh dist/",
+    "notes": "MANUAL: Run expo export, measure dist/ folder size. Separate iOS and Android if possible."
+  },
+  "memory": {
+    "ios_peak_mb": null,
+    "android_peak_mb": null,
+    "leaks_detected": false,
+    "method": "Xcode Instruments (iOS) / Android Studio Profiler (Android)",
+    "notes": "MANUAL: Profile app while navigating through all 5 screens, record peak memory usage. Check for memory leaks."
+  },
+  "baseline_targets": {
+    "tti_max_increase": "10%",
+    "fps_min": 55,
+    "bundle_max_increase": "10%",
+    "memory_stable": "no leaks"
+  },
+  "instructions": {
+    "step_1": "Run production build: npm run start -- --no-dev --minify",
+    "step_2": "Measure TTI (cold start, warm start) - average 3 runs each",
+    "step_3": "Enable Performance Monitor, record FPS for each tab",
+    "step_4": "Run: npx expo export --platform all",
+    "step_5": "Measure: du -sh dist/ (or dir dist /s on Windows)",
+    "step_6": "Profile memory with Xcode Instruments or Android Studio",
+    "step_7": "Replace null values above with actual measurements",
+    "step_8": "Update status to 'COMPLETE' when done"
+  }
+}

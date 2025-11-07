@@ -1,28 +1,31 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Box } from '@/ui/adapters';
+import { Text } from '@/ui/primitives';
+import { tokens } from '@/ui/tokens';
 
 export default function IntegrationsScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Integrations</Text>
-      <Text style={styles.subtitle}>Supabase, Stripe, GitHub, Sounds, Haptics...</Text>
-    </View>
+    <Box
+      flex={1}
+      justifyContent="center"
+      alignItems="center"
+      backgroundColor={tokens.colors.background.base}
+    >
+      <Text
+        variant="h1"
+        align="center"
+        color="primary"
+        accessibilityRole="header"
+      >
+        Integrations
+      </Text>
+      <Text
+        variant="body"
+        align="center"
+        color="secondary"
+        style={{ marginTop: tokens.spacing.xs }}
+      >
+        Supabase, Stripe, GitHub, Sounds, Haptics...
+      </Text>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-});

@@ -1,0 +1,150 @@
+{
+  "date": "2025-11-06",
+  "phase": "01-discovery-baseline",
+  "status": "TEMPLATE - Requires manual testing",
+  "screens_tested": 5,
+  "wcag_level": "AA",
+  "testing_method": "Manual + @axe-core/react-native (if installed)",
+  "issues": [
+    {
+      "id": "001",
+      "screen": "index.tsx",
+      "severity": "high",
+      "type": "missing_label",
+      "element": "Link (Get Started button)",
+      "wcag_criterion": "4.1.2",
+      "description": "TouchableOpacity missing accessibilityRole='button'",
+      "current_state": "No accessibility attributes",
+      "recommended_fix": "Add accessibilityRole='button', accessibilityLabel='Get Started'"
+    },
+    {
+      "id": "002",
+      "screen": "login.tsx",
+      "severity": "high",
+      "type": "missing_label",
+      "element": "TextInput (email)",
+      "wcag_criterion": "4.1.2",
+      "description": "Email input missing accessibilityLabel",
+      "current_state": "Only placeholder text",
+      "recommended_fix": "Add accessibilityLabel='Email address'"
+    },
+    {
+      "id": "003",
+      "screen": "login.tsx",
+      "severity": "high",
+      "type": "missing_role",
+      "element": "TouchableOpacity buttons (4 instances)",
+      "wcag_criterion": "4.1.2",
+      "description": "Auth buttons missing accessibilityRole",
+      "current_state": "No accessibility attributes",
+      "recommended_fix": "Add accessibilityRole='button' to all TouchableOpacity"
+    },
+    {
+      "id": "004",
+      "screen": "ALL",
+      "severity": "medium",
+      "type": "missing_hint",
+      "element": "All interactive elements",
+      "wcag_criterion": "2.4.6",
+      "description": "No accessibilityHint for actions",
+      "current_state": "Missing hints",
+      "recommended_fix": "Add accessibilityHint describing action result"
+    },
+    {
+      "id": "005",
+      "screen": "ALL",
+      "severity": "medium",
+      "type": "no_dark_mode",
+      "element": "Entire app",
+      "wcag_criterion": "1.4.3",
+      "description": "Dark mode not implemented despite colors defined",
+      "current_state": "Only light mode",
+      "recommended_fix": "Implement useColorScheme() and theme provider"
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 3,
+    "medium": 2,
+    "low": 0,
+    "total": 5
+  },
+  "compliance": {
+    "screen_reader": {
+      "ios_voiceover": "NEEDS_TESTING",
+      "android_talkback": "NEEDS_TESTING",
+      "notes": "Manual testing required with VoiceOver and TalkBack"
+    },
+    "touch_targets": {
+      "status": "PARTIAL",
+      "ios_minimum": "44pt",
+      "android_minimum": "48dp",
+      "notes": "Button components meet minimum (48pt). Need to verify all TouchableOpacity elements."
+    },
+    "contrast": {
+      "status": "NEEDS_TESTING",
+      "wcag_aa_text": "4.5:1",
+      "wcag_aa_ui": "3:1",
+      "notes": "Need to verify all color combinations with contrast checker tool"
+    },
+    "dynamic_type": {
+      "status": "NOT_IMPLEMENTED",
+      "notes": "No font scaling support detected. Need to test with iOS/Android accessibility settings."
+    },
+    "rtl_support": {
+      "status": "NOT_IMPLEMENTED",
+      "notes": "No RTL (Right-to-Left) layout support detected"
+    }
+  },
+  "manual_tests_required": [
+    {
+      "test": "VoiceOver Navigation (iOS)",
+      "instructions": "Enable VoiceOver in Settings → Accessibility. Navigate through all 5 screens. Verify all interactive elements are labeled and reading order is logical.",
+      "expected": "All buttons, inputs, and links should be announced with clear labels",
+      "status": "PENDING"
+    },
+    {
+      "test": "TalkBack Navigation (Android)",
+      "instructions": "Enable TalkBack in Settings → Accessibility. Navigate through all 5 screens. Verify all interactive elements are labeled.",
+      "expected": "All buttons, inputs, and links should be announced",
+      "status": "PENDING"
+    },
+    {
+      "test": "Touch Target Sizing",
+      "instructions": "Measure all interactive elements. iOS minimum: 44pt × 44pt. Android minimum: 48dp × 48dp.",
+      "expected": "All buttons and touchable elements meet minimum sizes",
+      "status": "PENDING"
+    },
+    {
+      "test": "Contrast Ratios",
+      "instructions": "Use contrast checker (e.g., WebAIM). Test all text and UI elements. Text: 4.5:1, UI: 3:1 for WCAG AA.",
+      "expected": "All color combinations pass WCAG AA",
+      "status": "PENDING"
+    },
+    {
+      "test": "Dynamic Type (iOS)",
+      "instructions": "Settings → Display & Brightness → Text Size. Increase text size to maximum. Verify all text scales properly.",
+      "expected": "Text scales without overflow or layout breaking",
+      "status": "PENDING"
+    },
+    {
+      "test": "Font Size (Android)",
+      "instructions": "Settings → Display → Font size. Increase to maximum. Verify text scales.",
+      "expected": "Text scales properly",
+      "status": "PENDING"
+    }
+  ],
+  "axe_core_setup": {
+    "installed": false,
+    "command": "npm install --save-dev @axe-core/react-native",
+    "notes": "Optional: Install axe-core for automated testing. Manual testing is primary method for Phase 01."
+  },
+  "instructions": {
+    "step_1": "Review preliminary issues listed above",
+    "step_2": "Run manual tests (VoiceOver, TalkBack, touch targets, contrast)",
+    "step_3": "Update compliance status for each category",
+    "step_4": "Add any additional issues discovered during testing",
+    "step_5": "Update summary counts",
+    "step_6": "Update status to 'COMPLETE' when done"
+  }
+}

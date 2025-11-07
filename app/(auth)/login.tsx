@@ -1,171 +1,152 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Box } from '@/ui/adapters';
+import { Text, Input, Button, Divider } from '@/ui/primitives';
+import { tokens } from '@/ui/tokens';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { authService } from '@/services/auth/authService';
 import { useAuthStore } from '@/store/authStore';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setUser, setSession } = useAuthStore();
 
   const handleEmailLogin = async () => {
+    // Clear previous errors
+    setEmailError('');
+
+    // Validation
     if (!email) {
-      Alert.alert('Error', 'Please enter your email');
+      setEmailError('Email address is required');
+      ReactNativeHapticFeedback.trigger('notificationError');
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Please enter a valid email address');
+      ReactNativeHapticFeedback.trigger('notificationError');
+      return;
+    }
+
+    ReactNativeHapticFeedback.trigger('impactMedium');
     setIsLoading(true);
+
     const { error } = await authService.signInWithEmail(email);
     setIsLoading(false);
 
     if (error) {
-      Alert.alert('Error', error.message);
+      setEmailError(error.message);
+      ReactNativeHapticFeedback.trigger('notificationError');
       return;
     }
 
+    ReactNativeHapticFeedback.trigger('notificationSuccess');
     Alert.alert('Success', 'Check your email for the magic link!');
   };
 
   const handleOAuthLogin = async (provider: 'google' | 'github' | 'apple') => {
+    ReactNativeHapticFeedback.trigger('impactLight');
     setIsLoading(true);
+
     const { error } = await authService.signInWithOAuth(provider);
     setIsLoading(false);
 
     if (error) {
+      ReactNativeHapticFeedback.trigger('notificationError');
       Alert.alert('Error', error.message);
+    } else {
+      ReactNativeHapticFeedback.trigger('notificationSuccess');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to MobVibe</Text>
-      <Text style={styles.subtitle}>AI-Powered Mobile App Builder</Text>
+    <Box
+      flex={1}
+      justifyContent="center"
+      padding={tokens.spacing.lg}
+      backgroundColor={tokens.colors.background.base}
+    >
+      <Text
+        variant="h1"
+        align="center"
+        color="primary"
+        style={{ marginBottom: tokens.spacing.xs }}
+      >
+        Welcome to MobVibe
+      </Text>
+      <Text
+        variant="body"
+        align="center"
+        color="secondary"
+        style={{ marginBottom: tokens.spacing['2xl'] }}
+      >
+        AI-Powered Mobile App Builder
+      </Text>
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
+      <Box style={{ gap: tokens.spacing.md }}>
+        <Input
+          type="email"
           placeholder="Email address"
           value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!isLoading}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (emailError) setEmailError(''); // Clear error on type
+          }}
+          error={emailError}
+          disabled={isLoading}
+          autoFocus
+          accessibilityLabel="Email address"
+          accessibilityHint="Enter your email for magic link authentication"
         />
 
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
+        <Button
+          variant="primary"
+          fullWidth
           onPress={handleEmailLogin}
           disabled={isLoading}
+          loading={isLoading}
+          accessibilityLabel="Continue with email"
+          accessibilityHint="Sends a magic link to your email address"
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? 'Sending...' : 'Continue with Email'}
-          </Text>
-        </TouchableOpacity>
+          Continue with Email
+        </Button>
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        <Divider label="OR" />
 
-        <TouchableOpacity
-          style={[styles.button, styles.oauthButton]}
+        <Button
+          variant="secondary"
+          fullWidth
           onPress={() => handleOAuthLogin('google')}
           disabled={isLoading}
+          accessibilityLabel="Sign in with Google"
         >
-          <Text style={styles.oauthButtonText}>Continue with Google</Text>
-        </TouchableOpacity>
+          Continue with Google
+        </Button>
 
-        <TouchableOpacity
-          style={[styles.button, styles.oauthButton]}
+        <Button
+          variant="secondary"
+          fullWidth
           onPress={() => handleOAuthLogin('apple')}
           disabled={isLoading}
+          accessibilityLabel="Sign in with Apple"
         >
-          <Text style={styles.oauthButtonText}>Continue with Apple</Text>
-        </TouchableOpacity>
+          Continue with Apple
+        </Button>
 
-        <TouchableOpacity
-          style={[styles.button, styles.oauthButton]}
+        <Button
+          variant="secondary"
+          fullWidth
           onPress={() => handleOAuthLogin('github')}
           disabled={isLoading}
+          accessibilityLabel="Sign in with GitHub"
         >
-          <Text style={styles.oauthButtonText}>Continue with GitHub</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          Continue with GitHub
+        </Button>
+      </Box>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 48,
-  },
-  form: {
-    gap: 16,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  button: {
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  primaryButton: {
-    backgroundColor: '#2196F3',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: '#666',
-    fontSize: 14,
-  },
-  oauthButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  oauthButtonText: {
-    color: '#333',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

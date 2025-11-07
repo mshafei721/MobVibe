@@ -1,42 +1,46 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { Box } from '@/ui/adapters';
+import { Text, Button } from '@/ui/primitives';
+import { tokens } from '@/ui/tokens';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 export default function WelcomeScreen() {
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    ReactNativeHapticFeedback.trigger('impactLight');
+    router.push('/(auth)/login');
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>MobVibe</Text>
-      <Text style={styles.subtitle}>AI-Powered Mobile App Builder</Text>
-      <Link href="/(auth)/login" style={styles.link}>
-        <Text style={styles.linkText}>Get Started</Text>
-      </Link>
-    </View>
+    <Box
+      flex={1}
+      justifyContent="center"
+      alignItems="center"
+      backgroundColor={tokens.colors.background.base}
+    >
+      <Text
+        variant="h1"
+        color="primary"
+        accessibilityRole="header"
+      >
+        MobVibe
+      </Text>
+      <Text
+        variant="body"
+        color="secondary"
+        style={{ marginBottom: tokens.spacing.xl }}
+      >
+        AI-Powered Mobile App Builder
+      </Text>
+      <Button
+        variant="primary"
+        onPress={handleGetStarted}
+        accessibilityLabel="Get started with MobVibe"
+        accessibilityHint="Navigate to login screen"
+      >
+        Get Started
+      </Button>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 32,
-  },
-  link: {
-    marginTop: 16,
-  },
-  linkText: {
-    fontSize: 16,
-    color: '#2196F3',
-    fontWeight: '600',
-  },
-});

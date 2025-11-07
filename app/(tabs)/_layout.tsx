@@ -1,12 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { tokens } from '@/ui/tokens';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2196F3',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: tokens.colors.primary[500],
+        tabBarInactiveTintColor: tokens.colors.text.secondary,
         headerShown: false,
       }}
     >

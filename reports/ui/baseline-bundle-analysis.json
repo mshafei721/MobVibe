@@ -1,0 +1,140 @@
+{
+  "date": "2025-11-06",
+  "phase": "01-discovery-baseline",
+  "status": "TEMPLATE - Requires manual analysis",
+  "method": "npx expo export + npx react-native-bundle-visualizer",
+  "total_size_mb": null,
+  "platform_sizes": {
+    "ios_mb": null,
+    "android_mb": null,
+    "web_mb": null
+  },
+  "largest_dependencies": [
+    {
+      "rank": 1,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null,
+      "notes": "MANUAL: Run bundle analyzer to identify"
+    },
+    {
+      "rank": 2,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 3,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 4,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 5,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 6,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 7,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 8,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 9,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    },
+    {
+      "rank": 10,
+      "name": "TBD",
+      "size_kb": null,
+      "percentage": null
+    }
+  ],
+  "current_dependencies": {
+    "production": {
+      "@supabase/supabase-js": "^2.79.0",
+      "expo": "~52.0.0",
+      "expo-constants": "~17.0.0",
+      "expo-linking": "~7.0.0",
+      "expo-router": "~4.0.0",
+      "expo-secure-store": "~14.0.0",
+      "expo-status-bar": "~2.0.0",
+      "nativewind": "^4.2.1",
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1",
+      "react-native": "^0.76.5",
+      "react-native-safe-area-context": "~4.12.0",
+      "react-native-screens": "~4.3.0",
+      "tailwindcss": "^3.4.18",
+      "zustand": "^4.5.7"
+    },
+    "dev": {
+      "@types/react": "~18.3.12",
+      "@types/react-native": "^0.73.0",
+      "typescript": "~5.3.0"
+    }
+  },
+  "unused_modules": [],
+  "duplicate_dependencies": [],
+  "platform_specific": {
+    "ios_only": [],
+    "android_only": [],
+    "web_only": []
+  },
+  "optimization_opportunities": [
+    {
+      "type": "TBD",
+      "description": "MANUAL: Identify after running bundle analyzer",
+      "estimated_savings_kb": null,
+      "priority": "TBD"
+    }
+  ],
+  "tree_shaking": {
+    "enabled": true,
+    "notes": "React Native 0.76.5 supports tree-shaking. Verify with bundle analyzer."
+  },
+  "code_splitting": {
+    "enabled": false,
+    "notes": "No lazy loading or code splitting detected in current implementation"
+  },
+  "instructions": {
+    "step_1": "Install bundle visualizer: npm install --save-dev react-native-bundle-visualizer",
+    "step_2": "Export bundles: npx expo export --platform all",
+    "step_3": "Run visualizer: npx react-native-bundle-visualizer",
+    "step_4": "Measure total size: du -sh dist/ (or dir dist /s on Windows)",
+    "step_5": "Identify top 10 largest dependencies from visualizer HTML report",
+    "step_6": "Check for duplicate dependencies (e.g., multiple React versions)",
+    "step_7": "Note any unused modules that can be removed",
+    "step_8": "Document platform-specific dependencies (iOS-only, Android-only)",
+    "step_9": "Identify optimization opportunities (lazy loading, code splitting, etc.)",
+    "step_10": "Update all null values with actual measurements",
+    "step_11": "Update status to 'COMPLETE' when done"
+  },
+  "alternative_method": {
+    "description": "If react-native-bundle-visualizer fails, use Metro bundler output",
+    "command": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios-bundle.js --sourcemap-output ios-bundle.map",
+    "notes": "Analyze ios-bundle.js size and contents manually"
+  }
+}
