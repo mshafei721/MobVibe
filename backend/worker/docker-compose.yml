@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  worker:
+    build: .
+    image: mobvibe-worker:latest
+    environment:
+      - NODE_ENV=development
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - POLL_INTERVAL_MS=5000
+      - SHUTDOWN_TIMEOUT_MS=30000
+      - LOG_LEVEL=debug
+      - HEALTH_CHECK_PORT=8080
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
