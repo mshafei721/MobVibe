@@ -1,7 +1,9 @@
 import axios, { AxiosInstance } from 'axios'
+import { Readable } from 'stream'
 import { config } from '../config/index.js'
 import { logger } from '../utils/logger.js'
 import type { SandboxConfig, Sandbox, ExecResult } from '../types/index.js'
+import { OutputStreamer } from './OutputStreamer'
 
 export class SandboxManager {
   private client: AxiosInstance
@@ -147,6 +149,34 @@ export class SandboxManager {
       }
     } catch (error) {
       logger.error({ error, sandboxId, command }, 'Command execution failed')
+      throw error
+    }
+  }
+
+  async execCommandWithStreaming(
+    sandboxId: string,
+    command: string[],
+    sessionId: string,
+    streamer: OutputStreamer
+  ): Promise<ExecResult> {
+    logger.debug({ sandboxId, command, streaming: true }, 'Executing command with streaming')
+
+    try {
+      const result = await this.execCommand(sandboxId, command)
+
+      const stdoutStream = Readable.from([result.stdout])
+      const stderrStream = Readable.from([result.stderr])
+
+      await Promise.all([
+        streamer.streamOutput(sessionId, command.join(' '), stdoutStream, 'stdout'),
+        result.stderr
+          ? streamer.streamOutput(sessionId, command.join(' '), stderrStream, 'stderr')
+          : Promise.resolve(''),
+      ])
+
+      return result
+    } catch (error) {
+      logger.error({ error, sandboxId, command }, 'Streaming command execution failed')
       throw error
     }
   }

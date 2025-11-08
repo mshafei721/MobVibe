@@ -106,35 +106,46 @@ graph TD
 
 **Phase 20 → Phase 21**
 - Terminal output capture
-- ANSI color support
-- Streaming protocol
+- stderr stream (for error detection)
+- Event emission system
+- Error event type
 
 **Phase 21 → Phase 22**
-- Error handling framework
-- Retry strategies
-- Recovery mechanisms
+- Comprehensive error handling
+- Retry mechanisms with exponential backoff
+- User-facing error messages
+- Session state preservation
 
 ### Mobile Features (22-26)
 
 **Phase 22 → Phase 23**
-- Code viewer component
-- Syntax highlighting
-- File tree navigation
+- File listing API (backend)
+- File content retrieval API (backend)
+- Language detection (25+ languages)
+- Code viewer component (mobile deferred)
 
 **Phase 23 → Phase 24**
-- WebView preview component
-- Auto-refresh on updates
-- Screenshot capability
+- Preview URL generation (backend)
+- Expo dev server management
+- Database schema for preview URLs
+- Preview lifecycle (start/stop/refresh)
+- WebView preview component (mobile deferred)
+- Auto-refresh on updates (mobile deferred)
+- Screenshot capability (mobile deferred)
 
 **Phase 24 → Phase 25**
-- Voice input integration
-- Speech-to-text (native + cloud)
-- Hold-to-speak UI
+- Cloud speech-to-text API (backend)
+- Google Cloud Speech integration
+- Voice input components (mobile deferred)
+- Hold-to-speak UI (mobile deferred)
+- Permission handling (mobile deferred)
 
 **Phase 25 → Phase 26**
-- Icon generation workflow
-- Nano Banana API integration
-- Icon gallery and selection
+- AI-powered icon generation (backend)
+- Image generation API integration
+- Supabase Storage for icons
+- Database schema for icon URLs
+- Icon gallery and selection (mobile deferred)
 
 **Phase 26 → Phase 27**
 - Project CRUD operations
@@ -147,38 +158,63 @@ graph TD
 - Session persistence
 - Auto-save and resume
 - Session history
+- Activity tracking for rate calculations
 
 **Phase 28 → Phase 29**
 - Rate limiting enforcement
-- Usage tracking dashboard
-- Quota warnings
+- Usage tracking per tier
+- Quota check API
+- Warning thresholds (80%, 100%)
 
 **Phase 29 → Phase 30**
-- Error state components
-- Empty state designs
-- Friendly error messages
+- Error message catalog (30+ errors)
+- Empty state catalog (9 scenarios)
+- Friendly, actionable error messages
+- Integration with Phase 21 error handling
+- Integration with Phase 28 quota warnings
 
 **Phase 30 → Phase 31**
-- Onboarding flow
-- Feature tour
-- First session walkthrough
+- Onboarding flow (4 welcome screens, 5 walkthrough steps)
+- First session template (HELLO_WORLD)
+- Milestone tracking (6 auto-tracked achievements)
+- Contextual tips (9 tips for first 3 sessions)
+- Complete user journey (signup → onboarding → execution)
 
 ### Launch (31-34)
 
 **Phase 31 → Phase 32**
-- E2E test suite (Detox)
-- Core flow tests
-- CI integration
+- E2E test framework (Detox) configured for iOS and Android
+- Test suites: 53 scenarios across auth, dev flow, session management
+- Test helpers and utilities (auth, session, matchers, cleanup)
+- GitHub Actions workflow with parallel execution
+- Performance targets for optimization validation (<5min suite)
+- Coverage requirements (>80% critical paths)
+- Test infrastructure ready for mobile app implementation
 
 **Phase 32 → Phase 33**
-- Performance benchmarks
-- Optimization strategies
-- Monitoring setup
+- Performance benchmarking utilities (mark-and-measure API, async tracking)
+- Metro bundle optimization (minification, tree-shaking, code splitting)
+- Lazy loading utilities with retry logic and suspense
+- Bundle size limits (iOS <15MB, Android <20MB)
+- Memory management (LRU cache with TTL, cleanup hooks)
+- Network optimization (HTTP caching, request deduplication, prefetching)
+- Rendering performance hooks (throttle, debounce, requestAnimationFrame)
+- Cold start optimization (deferred initialization, priority-based tasks)
+- Performance monitoring (Sentry integration, metrics tracking)
+- Performance targets defined (<5s cold start, <3s session start, <500ms events)
+- Optimization infrastructure ready for mobile app implementation
 
 **Phase 33 → Phase 34**
-- Security audit report
-- Vulnerability fixes
-- Compliance verification
+- Automated security scanning (GitHub Actions: dependency, secret, SAST, container, code quality)
+- RLS policy verification (30 SQL tests + 19 TypeScript integration tests)
+- API security testing (30 tests: auth, injection, rate limiting, authorization, validation)
+- Secret scanning (TruffleHog, git-secrets, bash script with 10+ pattern checks)
+- Environment validation (TypeScript validator with format checking)
+- OWASP Top 10 compliance (48 tests across all 10 categories)
+- Security audit documentation (comprehensive guide with best practices)
+- Security audit report template (professional reporting format)
+- 127 total security tests covering all critical paths
+- Security infrastructure ready for production deployment
 
 **Phase 34 → Production**
 - Production deployment
@@ -233,8 +269,55 @@ graph TD
 | FileWatcher | 18 ⭐ | 18-21 | Sandbox file monitoring |
 | ConflictResolver | 18 ⭐ | 18-21 | Conflict detection + resolution |
 | FileHasher | 18 ⭐ | 18-21 | SHA-256 change detection |
+| OutputStreamer | 20 ⭐ | 20-21 | Terminal output buffering + streaming |
+| MobVibeError Class | 21 ⭐ | 21-34 | Custom error type with categorization |
+| ErrorCatalog | 21 ⭐ | 21-34 | Error factory functions |
+| RetryManager | 21 ⭐ | 21-34 | Exponential backoff retry logic |
+| ErrorHandler | 21 ⭐ | 21-34 | Central error processing + event emission |
+| get-session-files Edge Function | 22 ⭐ | 22-34 | File tree API endpoint |
+| get-file-content Edge Function | 22 ⭐ | 22-34 | File content retrieval API |
+| Language Detection Utility | 22 ⭐ | 22-34 | File extension → language mapping |
+| PreviewManager | 23 ⭐ | 23-34 | Preview URL generation + lifecycle |
+| Preview Migration (012) | 23 ⭐ | 23-34 | Database schema for preview URLs |
+| speech-to-text Edge Function | 24 ⭐ | 24-34 | Cloud speech recognition API |
+| generate-icons Edge Function | 25 ⭐ | 25-34 | AI-powered icon generation API |
+| Icon Migration (013) | 25 ⭐ | 25-34 | Database schema + storage for icons |
+| Project Enhancement Migration (014) | 26 ⭐ | 26-34 | Enhanced project schema (framework, metadata, search) |
+| Session Persistence Migration (015) | 27 ⭐ | 27-34 | Session state snapshots, resume, compression |
+| SessionPersistenceManager | 27 ⭐ | 27-34 | Auto-save, resume, history, cleanup |
+| Rate Limiting Migration (016) | 28 ⭐ | 28-34 | Tier-based usage tracking, quota enforcement |
+| RateLimitManager | 28 ⭐ | 28-34 | Quota checks, usage stats, warning thresholds |
+| Error Message Catalog | 29 ⭐ | 29-34 | 30+ user-facing error messages, 9 empty states, dynamic formatting |
+| ErrorState Component (mobile) | 29 ⭐ | 29-34 | Error display with severity, actions, illustrations (deferred) |
+| EmptyState Component (mobile) | 29 ⭐ | 29-34 | Empty state guidance with CTAs (deferred) |
+| Onboarding Migration (017) | 30 ⭐ | 30-34 | Onboarding state tracking, milestones, preferences, auto-triggers |
+| Onboarding Content Catalog | 30 ⭐ | 30-34 | 4 welcome screens, 5 walkthroughs, 9 tips, 5 templates, 6 milestones |
+| OnboardingFlow Component (mobile) | 30 ⭐ | 30-34 | Welcome screens carousel and first session creation (deferred) |
+| InteractiveWalkthrough Component (mobile) | 30 ⭐ | 30-34 | UI element highlights and guided tour (deferred) |
+| Detox E2E Framework Configuration | 31 ⭐ | 31-34 | .detoxrc.js, Jest config, iOS/Android test setup |
+| E2E Test Suites | 31 ⭐ | 31-34 | 53 test scenarios: auth (12), dev flow (17), session mgmt (24) |
+| E2E Test Helpers | 31 ⭐ | 31-34 | Auth, session, matchers, cleanup utilities |
+| E2E GitHub Actions Workflow | 31 ⭐ | 31-34 | Parallel iOS/Android CI/CD with artifact capture |
+| PerformanceBenchmark | 32 ⭐ | 32-34 | Mark-and-measure API, async operation tracking, target validation |
+| Metro Bundle Config | 32 ⭐ | 32-34 | Minification, tree-shaking, code splitting, inline requires |
+| LazyLoadManager | 32 ⭐ | 32-34 | Code splitting utilities with retry logic and suspense fallback |
+| Bundle Size Limits | 32 ⭐ | 32-34 | iOS <15MB, Android <20MB automated validation |
+| useMemoryManager Hook | 32 ⭐ | 32-34 | Resource cleanup on app background, unmount, manual cleanup |
+| MemoryCache Class | 32 ⭐ | 32-34 | LRU cache with TTL (sessions, API responses, images) |
+| OptimizedApiClient | 32 ⭐ | 32-34 | HTTP caching, request deduplication, retry logic |
+| usePrefetch Hook | 32 ⭐ | 32-34 | Predictive loading, intersection observer, cache integration |
+| useThrottledCallback Hook | 32 ⭐ | 32-34 | Throttle, debounce, requestAnimationFrame utilities |
+| DeferredInitializationManager | 32 ⭐ | 32-34 | Priority-based task execution for cold start optimization |
+| Performance Tracking Utilities | 32 ⭐ | 32-34 | Sentry integration, metrics recording, transaction management |
+| Security Scan Workflow | 33 ⭐ | 33-34 | GitHub Actions: dependency, secret, SAST, container, code quality scans |
+| RLS Policy Tests (SQL) | 33 ⭐ | 33-34 | 30 PostgreSQL tests for row-level security verification |
+| RLS Enforcement Tests (TypeScript) | 33 ⭐ | 33-34 | 19 integration tests for RLS policy enforcement |
+| API Security Test Suite | 33 ⭐ | 33-34 | 30 tests: authentication, injection, rate limiting, authorization |
+| Secret Scanning Script | 33 ⭐ | 33-34 | Bash script with TruffleHog, git-secrets, 10+ pattern checks |
+| Environment Validation Script | 33 ⭐ | 33-34 | TypeScript validator for env vars, HTTPS, JWT, formats |
+| OWASP Compliance Tests | 33 ⭐ | 33-34 | 48 tests across OWASP Top 10 2021 categories |
 | EventEmitter | 19 | 20-26 | Real-time updates |
-| CodeViewer Component | 22 | 23, 27 | Display code |
+| CodeViewer Component | 22 | 23, 27 | Display code (mobile deferred) |
 | WebView Component | 23 | 27, 30 | Preview apps |
 
 ### Documentation
@@ -268,6 +351,21 @@ graph TD
 | realtime-patterns.md (Research) | 19 | 19, 20 |
 | 19-context-bundle.md | 19 | 19 |
 | 19-realtime-steps.md (Sequencing) | 19 | 19 |
+| TERMINAL.md | 20 ⭐ | 21-26 |
+| ERROR_HANDLING.md | 21 ⭐ | 22-34 |
+| CODE_VIEWER.md | 22 ⭐ | 23-34 |
+| WEBVIEW_PREVIEW.md | 23 ⭐ | 24-34 |
+| VOICE_INPUT.md | 24 ⭐ | 25-34 |
+| ICON_GENERATION.md | 25 ⭐ | 26-34 |
+| PROJECT_MANAGEMENT.md | 26 ⭐ | 27-34 |
+| SESSION_PERSISTENCE.md | 27 ⭐ | 28-34 |
+| RATE_LIMITING.md | 28 ⭐ | 29-34 |
+| ERROR_STATES.md | 29 ⭐ | 30-34 |
+| ONBOARDING.md | 30 ⭐ | 31-34 |
+| E2E_TESTING.md | 31 ⭐ | 32-34 |
+| PERFORMANCE.md | 32 ⭐ | 33-34 |
+| SECURITY_AUDIT.md | 33 ⭐ | 34 |
+| SECURITY_AUDIT_REPORT.md | 33 ⭐ | 34 |
 
 ### Test Artifacts
 
@@ -279,6 +377,7 @@ graph TD
 | Worker tests | 14 | 15-21 |
 | Mobile component tests | 22-26 | 31 |
 | E2E tests | 31 | 32 |
+| Security tests | 33 | 34 |
 
 ---
 

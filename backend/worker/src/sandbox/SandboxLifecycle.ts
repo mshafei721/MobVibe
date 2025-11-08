@@ -10,7 +10,7 @@ import type {
 } from '../types/index.js'
 
 export class SandboxLifecycle {
-  private manager: SandboxManager
+  public manager: SandboxManager
   private supabase: SupabaseClient
   private activeSandboxes = new Map<string, ActiveSandbox>()
   private cleanupInterval: NodeJS.Timeout | null = null
@@ -187,6 +187,10 @@ export class SandboxLifecycle {
         'Database update failed'
       )
     }
+  }
+
+  getActiveSandbox(sessionId: string): ActiveSandbox | undefined {
+    return this.activeSandboxes.get(sessionId)
   }
 
   getActiveSandboxCount(): number {

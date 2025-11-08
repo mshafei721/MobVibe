@@ -33,3 +33,25 @@ logs/
 # Design files (keep folder structure only)
 .docs/vibecode/*
 !.docs/vibecode/.gitkeep
+
+# Backend
+backend/worker/dist/
+backend/worker/node_modules/
+backend/worker/.env
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Security
+secrets-report.json
+audit-report.json
+
+# Build artifacts
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+nul

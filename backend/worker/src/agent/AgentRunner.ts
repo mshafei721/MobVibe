@@ -4,7 +4,12 @@ import { agentTools } from './tools'
 import { SandboxLifecycle } from '../sandbox/SandboxLifecycle'
 import { SessionLifecycleManager } from '../services/SessionLifecycleManager'
 import { FileSyncService } from '../services/FileSyncService'
+import { OutputStreamer } from '../sandbox/OutputStreamer'
+import { PreviewManager } from '../preview/PreviewManager'
 import { SessionEventType } from '../types/session-lifecycle'
+import { RetryManager } from '../errors/RetryManager'
+import { ErrorHandler } from '../errors/ErrorHandler'
+import { ErrorCatalog } from '../errors/catalog'
 import { logger } from '../utils/logger'
 import { config } from '../config'
 
@@ -20,6 +25,10 @@ export class AgentRunner {
   private sandboxes: SandboxLifecycle
   private lifecycle: SessionLifecycleManager
   private fileSync: FileSyncService
+  private streamer: OutputStreamer
+  private previewManager: PreviewManager
+  private retry: RetryManager
+  private errorHandler: ErrorHandler
   private maxIterations = 25
 
   constructor(sandboxes: SandboxLifecycle, lifecycle: SessionLifecycleManager) {
@@ -27,16 +36,19 @@ export class AgentRunner {
     this.sandboxes = sandboxes
     this.lifecycle = lifecycle
     this.fileSync = new FileSyncService()
+    this.streamer = new OutputStreamer(lifecycle)
+    this.previewManager = new PreviewManager(sandboxes, lifecycle)
+    this.retry = new RetryManager()
+    this.errorHandler = new ErrorHandler(lifecycle)
   }
 
   async runSession(sessionId: string, prompt: string): Promise<SessionStats> {
     logger.info({ sessionId, promptLength: prompt.length }, 'Starting agent session')
 
-    const messages: Anthropic.MessageParam[] = [
-      { role: 'user', content: prompt }
-    ]
+    try {
+      const messages: Anthropic.MessageParam[] = [{ role: 'user', content: prompt }]
 
-    const systemPrompt = `You are an expert React Native developer using Expo.
+      const systemPrompt = `You are an expert React Native developer using Expo.
 Your job is to build mobile apps based on user requirements.
 You have access to a sandbox environment where you can execute bash commands and manage files.
 
@@ -47,71 +59,96 @@ Available tools:
 
 Build the app step by step, testing as you go. When finished, respond with a summary of what was created.`
 
-    const stats: SessionStats = {
-      iterations: 0,
-      inputTokens: 0,
-      outputTokens: 0,
-      toolCalls: 0,
-    }
-
-    while (stats.iterations < this.maxIterations) {
-      stats.iterations++
-      logger.debug({ iteration: stats.iterations }, 'Agent iteration')
-
-      const response = await this.claude.createMessage({
-        system: systemPrompt,
-        messages,
-        tools: agentTools,
-        maxTokens: 8192,
-      })
-
-      stats.inputTokens += response.usage.input_tokens
-      stats.outputTokens += response.usage.output_tokens
-
-      messages.push({
-        role: 'assistant',
-        content: response.content,
-      })
-
-      const toolCalls = response.content.filter((block): block is Anthropic.ToolUseBlock =>
-        block.type === 'tool_use'
-      )
-
-      if (toolCalls.length === 0) {
-        logger.info({ stats }, 'Agent completed')
-        await this.lifecycle.emitEvent(sessionId, SessionEventType.COMPLETION, {
-          message: this.extractTextResponse(response.content),
-          stats,
-        })
-        break
+      const stats: SessionStats = {
+        iterations: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        toolCalls: 0,
       }
 
-      stats.toolCalls += toolCalls.length
+      while (stats.iterations < this.maxIterations) {
+        stats.iterations++
+        logger.debug({ iteration: stats.iterations }, 'Agent iteration')
 
-      const toolResults = await this.executeTools(sessionId, toolCalls)
+        const response = await this.retry.withRetry(
+          async () => {
+            try {
+              return await this.claude.createMessage({
+                system: systemPrompt,
+                messages,
+                tools: agentTools,
+                maxTokens: 8192,
+              })
+            } catch (error: any) {
+              if (error.status === 429) {
+                throw ErrorCatalog.CLAUDE_API_RATE_LIMIT()
+              }
+              if (error.status === 401) {
+                throw ErrorCatalog.CLAUDE_API_AUTH_FAILED()
+              }
+              throw error
+            }
+          },
+          { maxAttempts: 3 }
+        )
 
-      messages.push({
-        role: 'user',
-        content: toolResults,
-      })
+        stats.inputTokens += response.usage.input_tokens
+        stats.outputTokens += response.usage.output_tokens
 
-      this.lifecycle.recordActivity(sessionId)
+        messages.push({
+          role: 'assistant',
+          content: response.content,
+        })
 
-      await this.lifecycle.emitEvent(sessionId, SessionEventType.THINKING, {
-        iteration: stats.iterations,
-        toolsUsed: toolCalls.map(t => t.name),
-      })
+        const toolCalls = response.content.filter(
+          (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+        )
+
+        if (toolCalls.length === 0) {
+          logger.info({ stats }, 'Agent completed')
+          await this.lifecycle.emitEvent(sessionId, SessionEventType.COMPLETION, {
+            message: this.extractTextResponse(response.content),
+            stats,
+          })
+
+          try {
+            logger.info({ sessionId }, 'Generating preview URL')
+            const previewUrl = await this.previewManager.generatePreviewUrl(sessionId)
+            logger.info({ sessionId, previewUrl }, 'Preview URL generated')
+          } catch (error) {
+            logger.warn({ sessionId, error }, 'Failed to generate preview URL, continuing anyway')
+          }
+
+          break
+        }
+
+        stats.toolCalls += toolCalls.length
+
+        const toolResults = await this.executeTools(sessionId, toolCalls)
+
+        messages.push({
+          role: 'user',
+          content: toolResults,
+        })
+
+        this.lifecycle.recordActivity(sessionId)
+
+        await this.lifecycle.emitEvent(sessionId, SessionEventType.THINKING, {
+          iteration: stats.iterations,
+          toolsUsed: toolCalls.map((t) => t.name),
+        })
+      }
+
+      if (stats.iterations >= this.maxIterations) {
+        logger.warn({ sessionId, stats }, 'Agent reached max iterations')
+        throw new Error('Max iterations reached')
+      }
+
+      return stats
+    } catch (error) {
+      await this.errorHandler.handleError(sessionId, error as Error)
+      throw error
     }
-
-    if (stats.iterations >= this.maxIterations) {
-      logger.warn({ sessionId, stats }, 'Agent reached max iterations')
-      await this.lifecycle.emitEvent(sessionId, SessionEventType.ERROR, {
-        message: 'Max iterations reached',
-        stats,
-      })
-    }
-
-    return stats
   }
 
   private async executeTools(
@@ -129,12 +166,6 @@ Build the app step by step, testing as you go. When finished, respond with a sum
         switch (toolCall.name) {
           case 'bash':
             result = await this.executeBash(sessionId, (toolCall.input as any).command)
-            await this.lifecycle.emitEvent(sessionId, SessionEventType.TERMINAL, {
-              command: (toolCall.input as any).command,
-              output: result.stdout,
-              error: result.stderr,
-              exitCode: result.exitCode,
-            })
             break
 
           case 'read_file':
@@ -179,7 +210,18 @@ Build the app step by step, testing as you go. When finished, respond with a sum
   }
 
   private async executeBash(sessionId: string, command: string) {
-    const result = await this.sandboxes.execInSandbox(sessionId, ['bash', '-c', command])
+    const activeSandbox = this.sandboxes.getActiveSandbox(sessionId)
+    if (!activeSandbox) {
+      throw new Error('No active sandbox for session')
+    }
+
+    const result = await this.sandboxes.manager.execCommandWithStreaming(
+      activeSandbox.sandbox.id,
+      ['bash', '-c', command],
+      sessionId,
+      this.streamer
+    )
+
     return {
       exitCode: result.exitCode,
       stdout: result.stdout,
@@ -201,20 +243,28 @@ Build the app step by step, testing as you go. When finished, respond with a sum
     const tempPath = `/tmp/mobvibe-${Date.now()}`
 
     const writeResult = await this.sandboxes.execInSandbox(sessionId, [
-      'bash', '-c',
-      `mkdir -p $(dirname ${path}) && echo ${this.escapeShellArg(content)} > ${tempPath} && mv ${tempPath} ${path}`
+      'bash',
+      '-c',
+      `mkdir -p $(dirname ${path}) && echo ${this.escapeShellArg(content)} > ${tempPath} && mv ${tempPath} ${path}`,
     ])
 
     if (writeResult.exitCode !== 0) {
       throw new Error(`Failed to write file: ${writeResult.stderr}`)
     }
 
-    try {
-      await this.fileSync.uploadFile(sessionId, path, Buffer.from(content))
-      logger.debug({ sessionId, path }, 'File synced to storage')
-    } catch (error) {
-      logger.warn({ sessionId, path, error }, 'File sync to storage failed')
-    }
+    await this.retry.withRetry(
+      async () => {
+        try {
+          await this.fileSync.uploadFile(sessionId, path, Buffer.from(content))
+          logger.debug({ sessionId, path }, 'File synced to storage')
+        } catch (error) {
+          throw ErrorCatalog.FILE_SYNC_FAILED()
+        }
+      },
+      { maxAttempts: 3, initialDelay: 500 }
+    ).catch((error) => {
+      logger.warn({ sessionId, path, error }, 'File sync to storage failed after retries')
+    })
 
     return { success: true, path }
   }

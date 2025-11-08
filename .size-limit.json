@@ -1,0 +1,30 @@
+[
+  {
+    "name": "iOS Bundle (Debug)",
+    "path": "ios/build/Build/Products/Debug-iphonesimulator/MobVibe.app/main.jsbundle",
+    "limit": "20 MB",
+    "webpack": false,
+    "running": false
+  },
+  {
+    "name": "iOS Bundle (Release)",
+    "path": "ios/build/Build/Products/Release-iphonesimulator/MobVibe.app/main.jsbundle",
+    "limit": "15 MB",
+    "webpack": false,
+    "running": false
+  },
+  {
+    "name": "Android Bundle (Debug)",
+    "path": "android/app/build/generated/assets/react/debug/index.android.bundle",
+    "limit": "25 MB",
+    "webpack": false,
+    "running": false
+  },
+  {
+    "name": "Android Bundle (Release)",
+    "path": "android/app/build/generated/assets/react/release/index.android.bundle",
+    "limit": "20 MB",
+    "webpack": false,
+    "running": false
+  }
+]
