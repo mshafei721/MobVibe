@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import config from '../config'
-import logger from '../utils/logger'
+import { config } from '../config/index.js'
+import { logger } from '../utils/logger.js'
 
 /**
  * Rate limit check result

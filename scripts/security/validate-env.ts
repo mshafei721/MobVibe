@@ -7,7 +7,6 @@
 const requiredEnvVars = [
   'EXPO_PUBLIC_SUPABASE_URL',
   'EXPO_PUBLIC_SUPABASE_ANON_KEY',
-  'EXPO_PUBLIC_E2B_API_KEY',
   'EXPO_PUBLIC_API_URL',
   'EXPO_PUBLIC_SENTRY_DSN',
 ];
@@ -17,10 +16,9 @@ const requiredEnvVars = [
  */
 const sensitiveEnvVars = [
   'SUPABASE_SERVICE_ROLE_KEY',
-  'E2B_API_KEY',
+  'FLY_API_TOKEN',
   'SENTRY_AUTH_TOKEN',
   'ANTHROPIC_API_KEY',
-  'OPENAI_API_KEY',
   'GOOGLE_CLOUD_API_KEY',
 ];
 
@@ -241,19 +239,22 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 # Backend Service (NEVER expose this in frontend!)
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
-# E2B Sandbox API
-EXPO_PUBLIC_E2B_API_KEY=your-e2b-api-key-here
-
 # API URL
-EXPO_PUBLIC_API_URL=https://your-api.vercel.app
+EXPO_PUBLIC_API_URL=https://api.mobvibe.app
 
-# Sentry Monitoring
-EXPO_PUBLIC_SENTRY_DSN=https://your-sentry-dsn-here
+# Sentry/GlitchTip Monitoring (Sentry-compatible DSN)
+EXPO_PUBLIC_SENTRY_DSN=https://your-sentry-or-glitchtip-dsn-here
+
+# Backend Worker Environment Variables
+# Fly.io Configuration (Backend only)
+FLY_API_TOKEN=your-fly-api-token-here
+FLY_APP_NAME=mobvibe-sandboxes
+FLY_REGION=sjc
 
 # Claude AI API (Backend only)
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
-# Optional: Google Cloud (for speech-to-text)
+# Optional: Google Cloud (for speech-to-text - Phase 2)
 GOOGLE_CLOUD_API_KEY=your-google-cloud-api-key-here
 `;
 

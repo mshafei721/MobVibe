@@ -12,6 +12,16 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="projects"
+        options={{
+          title: 'Projects',
+          tabBarLabel: 'Projects',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="folder" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="code"
         options={{
           title: 'Code',

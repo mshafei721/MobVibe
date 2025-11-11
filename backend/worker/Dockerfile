@@ -20,17 +20,29 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 --ingroup nodejs appuser
+
 # Copy package files
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --only=production && \
+    npm cache clean --force
 
 # Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
+COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
 
-# Environment
-ENV NODE_ENV=production
+# Switch to non-root user
+USER appuser
+
+# Expose health check port
+EXPOSE 8080
 
 # Health check using wget (included in Alpine)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

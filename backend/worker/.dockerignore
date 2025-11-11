@@ -9,4 +9,3 @@ coverage
 .git
 .gitignore
 README.md
-tsconfig.json

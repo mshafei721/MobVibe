@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { createGzip, gunzip } from 'zlib'
 import { promisify } from 'util'
-import config from '../config'
-import logger from '../utils/logger'
+import { config } from '../config/index.js'
+import { logger } from '../utils/logger.js'
 
 const gunzipAsync = promisify(gunzip)
 
