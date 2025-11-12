@@ -1,0 +1,197 @@
+# Execute P0 Critical Tasks - Production Ready Workflow
+# Auto-generated: 2025-11-12
+# Purpose: Execute all 5 P0 critical tasks from TASK-LIST.md to achieve production readiness
+# Reference: SEQUENCE-PLAN.md (Week 1-3), REVIEW-REPORT.md (findings)
+
+## Phase 1: Setup & Validation
+
+fullstack-developer "Read task list and validate environment":
+  - Read D:\009_Projects_AI\Personal_Projects\MobVibe\TASK-LIST.md
+  - Extract P0 tasks: T001, T002, T005, T010, T017
+  - Read D:\009_Projects_AI\Personal_Projects\MobVibe\REVIEW-REPORT.md for context
+  - Read D:\009_Projects_AI\Personal_Projects\MobVibe\SEQUENCE-PLAN.md for dependencies
+  - Validate current git status (should be on main branch)
+  - Check environment: Node.js version, Expo CLI, EAS CLI installed
+  - Verify Supabase project access
+  - Output: environment_ready (boolean), p0_tasks (list), dependencies (graph)
+
+(if !environment_ready)~> @checkpoint "Environment validation failed. Please resolve issues before proceeding."
+
+## Phase 2: P0 Task Execution (Hybrid: Parallel + Sequential)
+
+### Stream 1: Monitoring Infrastructure (T001 → T017)
+
+fullstack-developer "T001: Complete Sentry Integration" (if environment_ready):sentry_complete~>
+  - Read task details from TASK-LIST.md (search for "T001")
+  - Install Sentry SDK: @sentry/react-native
+  - Create Sentry project (or use existing)
+  - Add Sentry DSN to .env.production
+  - Initialize Sentry in app/_layout.tsx with error boundary
+  - Configure Sentry in ErrorBoundary.tsx
+  - Add Sentry to utils/logger.ts for production logging
+  - Test error capture in development
+  - Update acceptance criteria checklist
+  - Output: Sentry DSN, integration status
+
+(if !sentry_complete)~> @checkpoint "T001 Sentry Integration failed. Review errors before proceeding."
+
+fullstack-developer "T017: Configure Sentry Source Maps" (if sentry_complete):source_maps_ready~>
+  - Read task details from TASK-LIST.md (search for "T017")
+  - Install @sentry/react-native plugin for Expo
+  - Configure eas.json to upload source maps during build
+  - Add sentry.properties configuration file
+  - Test source map upload with development build
+  - Verify source maps appear in Sentry dashboard
+  - Document source map configuration
+  - Output: source map upload verified
+
+### Stream 2: Logger Migration (T002 → T012)
+
+fullstack-developer "T002: Replace console.log with Logger" (if environment_ready):logger_complete~>
+  - Read task details from TASK-LIST.md (search for "T002")
+  - Create centralized logger utility: utils/logger.ts with levels (debug, info, warn, error)
+  - Implement feature flag to toggle between console and logger
+  - Use grep to find all console.log instances (should find 688)
+  - Replace console.log with logger.info systematically by directory:
+    * Start with app/ directory (14 files)
+    * Then components/ directory (28 files)
+    * Then src/ directory
+    * Then hooks/ (12 files)
+    * Then store/ (5 files)
+  - Run tests after each directory batch
+  - Ensure TypeScript compilation passes
+  - Test logging in development
+  - Verify no console.log remains (grep verification)
+  - Output: logger utility path, replacement count
+
+(if !logger_complete)~> @checkpoint "T002 Logger Migration failed. Review errors and rollback if needed."
+
+fullstack-developer "T012: Add Production Logger Transports" (if logger_complete):logger_production_ready~>
+  - Read task details from TASK-LIST.md (search for "T012")
+  - Add Supabase transport to logger (write to logs table)
+  - Create logs table in Supabase if not exists
+  - Add file transport for local debugging
+  - Configure log rotation and cleanup
+  - Test production logging in staging environment
+  - Verify logs appear in Supabase dashboard
+  - Document logging configuration
+  - Output: transports configured, test results
+
+### Stream 3: Production Build Configuration (T010)
+
+fullstack-developer "T010: Complete EAS Production Config" (if environment_ready):eas_ready~>
+  - Read task details from TASK-LIST.md (search for "T010")
+  - Install EAS CLI globally if not installed
+  - Login to Expo account with eas login
+  - Initialize EAS: eas build:configure
+  - Create eas.json with production profile
+  - Configure .env.production (already exists, verify completeness)
+  - Set up production environment variables in EAS
+  - Configure iOS/Android build profiles
+  - Test production build: eas build --platform android --profile production
+  - Verify build completes successfully
+  - Download and test .apk on device
+  - Output: eas.json created, build successful
+
+(if !eas_ready)~> @checkpoint "T010 EAS Configuration failed. Check Expo account and credentials."
+
+### Stream 4: Worker Service Validation (T005)
+
+backend-developer "T005: Validate Worker Service" (if environment_ready):worker_validated~>
+  - Read task details from TASK-LIST.md (search for "T005")
+  - Review worker service implementation in supabase/functions/
+  - Test generate-icons endpoint with curl/Postman
+  - Test generate-sounds endpoint with curl/Postman
+  - Check Supabase Edge Functions logs for errors
+  - Validate API contracts match frontend expectations
+  - Test error handling and rate limiting
+  - Review architecture against REVIEW-REPORT.md findings
+  - Document validation results
+  - Output: validation report, any issues found
+
+(if !worker_validated)~> @checkpoint "T005 Worker Service validation revealed issues. Review before proceeding."
+
+## Phase 3: Final P0 Task (Sequential - Requires T017)
+
+fullstack-developer "T020: Setup Error Monitoring Alerts" (if source_maps_ready):monitoring_complete~>
+  - Read task details from TASK-LIST.md (search for "T020")
+  - Configure Sentry alerts for critical errors
+  - Set up Slack integration for error notifications
+  - Configure email alerts for production errors
+  - Set alert thresholds (error rate, frequency)
+  - Test alert delivery with simulated errors
+  - Document alert configuration
+  - Output: alerts configured and tested
+
+## Phase 4: Verification & Quality Gates
+
+qa-expert "Verify P0 Completion" (if monitoring_complete && logger_production_ready && eas_ready && worker_validated):p0_verified~>
+  - Run full test suite: npm test
+  - Check TypeScript compilation: npx tsc --noEmit
+  - Run E2E tests if available
+  - Verify production build compiles: eas build --platform android --profile production
+  - Test Sentry error capture in production build
+  - Verify logger writes to Supabase
+  - Check worker service endpoints respond correctly
+  - Validate all 10 exit criteria from SEQUENCE-PLAN.md Phase A Gate
+  - Generate verification report
+  - Output: verification status, any failures
+
+(if !p0_verified)~> @checkpoint "P0 verification failed. Review issues before committing."
+
+## Phase 5: Commit & Documentation
+
+fullstack-developer "Commit P0 Changes" (if p0_verified):
+  - Stage all changes: git add .
+  - Create comprehensive commit message listing all P0 tasks completed
+  - Commit with: git commit -m "feat: Complete P0 critical tasks (T001, T002, T005, T010, T017, T020, T012)
+
+  - T001: Complete Sentry Integration (4-6h)
+  - T002: Replace console.log with Logger (8-12h)
+  - T005: Validate Worker Service (4-6h)
+  - T010: Complete EAS Production Config (2-3h)
+  - T017: Configure Sentry Source Maps (1-2h)
+  - T020: Setup Error Monitoring Alerts (2-3h)
+  - T012: Add Production Logger Transports (2-3h)
+
+  Production Ready Gate achieved. Ready for deployment.
+
+  🤖 Generated with Claude Code
+  Co-Authored-By: Claude <noreply@anthropic.com>"
+  - Push to remote: git push origin main
+  - Output: commit SHA, push status
+
+documentation-engineer "Generate Completion Report":
+  - Create P0-COMPLETION-REPORT.md in project root
+  - Document all P0 tasks completed with timestamps
+  - Include verification results from QA phase
+  - List production readiness checklist status
+  - Document next steps (P1 tasks from TASK-LIST.md)
+  - Reference SEQUENCE-PLAN.md for Week 4-6 timeline
+  - Output: report path
+
+## Workflow Summary
+
+# This workflow executes all 5 P0 critical tasks in 4 phases:
+#
+# Phase 1: Setup & Validation (1 agent)
+#   - Validates environment and extracts P0 tasks
+#
+# Phase 2: Parallel Execution (4 streams)
+#   - Stream 1: T001 → T017 (Sentry → Source Maps)
+#   - Stream 2: T002 → T012 (Logger → Transports)
+#   - Stream 3: T010 (EAS Configuration)
+#   - Stream 4: T005 (Worker Validation)
+#
+# Phase 3: Sequential (requires T017)
+#   - T020: Monitoring Alerts (requires source maps)
+#
+# Phase 4: Verification (QA)
+#   - Tests, build validation, exit criteria
+#
+# Phase 5: Commit & Documentation
+#   - Commit all changes, generate report
+#
+# Estimated Duration: 22-32 hours (midpoint: 27 hours)
+# Checkpoints: 5 conditional checkpoints pause on errors
+# Success Criteria: All 10 Phase A exit criteria from SEQUENCE-PLAN.md
