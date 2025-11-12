@@ -9,6 +9,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sessionService } from '../services/api';
 import type { Session } from '../services/api/types';
+import { logger } from '../utils/logger';
 
 // Message types for chat interface
 export interface Message {
@@ -75,7 +76,7 @@ export const useSessionStore = create<SessionState>()(
         set({ loading: true, error: null, messages: [] });
 
         try {
-          console.log('[SessionStore] Starting new session', { projectId });
+          logger.info('[SessionStore] Starting new session', { projectId });
 
           // Create session via API
           const { session, job_id } = await sessionService.createSession(
@@ -99,14 +100,14 @@ export const useSessionStore = create<SessionState>()(
             isThinking: true
           });
 
-          console.log('[SessionStore] Session started successfully', {
+          logger.info('[SessionStore] Session started successfully', {
             sessionId: session.id,
             jobId: job_id
           });
 
           return session;
         } catch (error: any) {
-          console.error('[SessionStore] Failed to start session:', error);
+          logger.error('[SessionStore] Failed to start session', error);
           set({
             error: error.message || 'Failed to start session',
             loading: false
@@ -120,7 +121,7 @@ export const useSessionStore = create<SessionState>()(
         set({ loading: true, error: null });
 
         try {
-          console.log('[SessionStore] Resuming session', { sessionId });
+          logger.info('[SessionStore] Resuming session', { sessionId });
 
           const session = await sessionService.resumeSession(sessionId);
 
@@ -133,12 +134,12 @@ export const useSessionStore = create<SessionState>()(
             isThinking: session.status === 'active'
           });
 
-          console.log('[SessionStore] Session resumed', {
+          logger.info('[SessionStore] Session resumed', {
             sessionId,
             messageCount: currentMessages.length
           });
         } catch (error: any) {
-          console.error('[SessionStore] Failed to resume session:', error);
+          logger.error('[SessionStore] Failed to resume session:', error);
           set({
             error: error.message || 'Failed to resume session',
             loading: false
@@ -151,14 +152,14 @@ export const useSessionStore = create<SessionState>()(
       pauseSession: async () => {
         const { currentSession } = get();
         if (!currentSession) {
-          console.warn('[SessionStore] No active session to pause');
+          logger.warn('[SessionStore] No active session to pause');
           return;
         }
 
         set({ loading: true, error: null });
 
         try {
-          console.log('[SessionStore] Pausing session', {
+          logger.info('[SessionStore] Pausing session', {
             sessionId: currentSession.id
           });
 
@@ -172,9 +173,9 @@ export const useSessionStore = create<SessionState>()(
             isThinking: false
           }));
 
-          console.log('[SessionStore] Session paused');
+          logger.info('[SessionStore] Session paused');
         } catch (error: any) {
-          console.error('[SessionStore] Failed to pause session:', error);
+          logger.error('[SessionStore] Failed to pause session:', error);
           set({
             error: error.message || 'Failed to pause session',
             loading: false
@@ -187,14 +188,14 @@ export const useSessionStore = create<SessionState>()(
       stopSession: async () => {
         const { currentSession } = get();
         if (!currentSession) {
-          console.warn('[SessionStore] No active session to stop');
+          logger.warn('[SessionStore] No active session to stop');
           return;
         }
 
         set({ loading: true, error: null });
 
         try {
-          console.log('[SessionStore] Stopping session', {
+          logger.info('[SessionStore] Stopping session', {
             sessionId: currentSession.id
           });
 
@@ -206,9 +207,9 @@ export const useSessionStore = create<SessionState>()(
             isThinking: false
           });
 
-          console.log('[SessionStore] Session stopped');
+          logger.info('[SessionStore] Session stopped');
         } catch (error: any) {
-          console.error('[SessionStore] Failed to stop session:', error);
+          logger.error('[SessionStore] Failed to stop session:', error);
           set({
             error: error.message || 'Failed to stop session',
             loading: false
@@ -219,7 +220,7 @@ export const useSessionStore = create<SessionState>()(
 
       // Send a message in the current session
       sendMessage: async (sessionId: string, message: string) => {
-        console.log('[SessionStore] Sending message', {
+        logger.info('[SessionStore] Sending message', {
           sessionId,
           messageLength: message.length
         });
@@ -242,9 +243,9 @@ export const useSessionStore = create<SessionState>()(
         try {
           // TODO: Implement sendMessage endpoint when backend supports it
           // For now, this is a placeholder for future message sending
-          console.log('[SessionStore] Message added to UI (API endpoint pending)');
+          logger.info('[SessionStore] Message added to UI (API endpoint pending)');
         } catch (error: any) {
-          console.error('[SessionStore] Failed to send message:', error);
+          logger.error('[SessionStore] Failed to send message:', error);
 
           // Remove optimistic message on failure
           set(state => ({
@@ -262,7 +263,7 @@ export const useSessionStore = create<SessionState>()(
           // Prevent duplicate messages
           const isDuplicate = state.messages.some(m => m.id === message.id);
           if (isDuplicate) {
-            console.warn('[SessionStore] Duplicate message detected', {
+            logger.warn('[SessionStore] Duplicate message detected', {
               messageId: message.id
             });
             return state;
@@ -276,7 +277,7 @@ export const useSessionStore = create<SessionState>()(
 
       // Clear all messages
       clearMessages: () => {
-        console.log('[SessionStore] Clearing messages');
+        logger.info('[SessionStore] Clearing messages');
         set({ messages: [] });
       },
 
@@ -290,7 +291,7 @@ export const useSessionStore = create<SessionState>()(
         set({ loading: true, error: null });
 
         try {
-          console.log('[SessionStore] Fetching recent sessions', { projectId });
+          logger.info('[SessionStore] Fetching recent sessions', { projectId });
 
           const sessions = await sessionService.getSessionHistory(projectId);
 
@@ -299,11 +300,11 @@ export const useSessionStore = create<SessionState>()(
             loading: false
           });
 
-          console.log('[SessionStore] Fetched sessions', {
+          logger.info('[SessionStore] Fetched sessions', {
             count: sessions.length
           });
         } catch (error: any) {
-          console.error('[SessionStore] Failed to fetch sessions:', error);
+          logger.error('[SessionStore] Failed to fetch sessions:', error);
           set({
             error: error.message || 'Failed to fetch sessions',
             loading: false
@@ -316,7 +317,7 @@ export const useSessionStore = create<SessionState>()(
         set({ loading: true, error: null });
 
         try {
-          console.log('[SessionStore] Loading session', { sessionId });
+          logger.info('[SessionStore] Loading session', { sessionId });
 
           // Get session details from backend
           const session = await sessionService.getSession(sessionId);
@@ -332,12 +333,12 @@ export const useSessionStore = create<SessionState>()(
             isThinking: session.status === 'active'
           });
 
-          console.log('[SessionStore] Session loaded', {
+          logger.info('[SessionStore] Session loaded', {
             sessionId,
             status: session.status
           });
         } catch (error: any) {
-          console.error('[SessionStore] Failed to load session:', error);
+          logger.error('[SessionStore] Failed to load session:', error);
           set({
             error: error.message || 'Failed to load session',
             loading: false
@@ -347,7 +348,7 @@ export const useSessionStore = create<SessionState>()(
 
       // Clear current session
       clearCurrentSession: () => {
-        console.log('[SessionStore] Clearing current session');
+        logger.info('[SessionStore] Clearing current session');
         sessionService.cleanup(); // Unsubscribe from events
         set({
           currentSession: null,
@@ -375,7 +376,7 @@ export const useSessionStore = create<SessionState>()(
       // Handle rehydration
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log('[SessionStore] State rehydrated from storage', {
+          logger.info('[SessionStore] State rehydrated from storage', {
             hasSession: !!state.currentSession,
             messageCount: state.messages.length,
             recentSessionsCount: state.recentSessions.length

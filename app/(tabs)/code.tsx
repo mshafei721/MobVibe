@@ -21,6 +21,7 @@ import { SessionControls } from '@/components/coding/SessionControls';
 import { EmptySessionState } from '@/components/coding/EmptySessionState';
 import { FileExplorerSheet } from '@/components/coding/FileExplorerSheet';
 import { TerminalSheet } from '@/components/coding/TerminalSheet';
+import { logger } from '@/utils/logger';
 
 export default function CodeScreen() {
   const { projectId } = useLocalSearchParams<{ projectId?: string }>();
@@ -118,10 +119,10 @@ export default function CodeScreen() {
       } else {
         // TODO: Send message to existing session
         // This would require a new API endpoint to send additional prompts
-        console.warn('Sending messages to existing sessions not yet implemented');
+        logger.warn('Sending messages to existing sessions not yet implemented');
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message', error as Error);
       addEvent({
         type: 'error',
         message: error instanceof Error ? error.message : 'Failed to send message',
@@ -137,7 +138,7 @@ export default function CodeScreen() {
       await sessionService.pauseSession(currentSession.id);
       setCurrentSession({ ...currentSession, status: 'pending' });
     } catch (error) {
-      console.error('Failed to pause session:', error);
+      logger.error('Failed to pause session', error as Error);
     }
   };
 
@@ -147,7 +148,7 @@ export default function CodeScreen() {
       await sessionService.resumeSession(currentSession.id);
       setCurrentSession({ ...currentSession, status: 'running' });
     } catch (error) {
-      console.error('Failed to resume session:', error);
+      logger.error('Failed to resume session', error as Error);
     }
   };
 
@@ -158,7 +159,7 @@ export default function CodeScreen() {
       setCurrentSession(null);
       clearEvents();
     } catch (error) {
-      console.error('Failed to stop session:', error);
+      logger.error('Failed to stop session', error as Error);
     }
   };
 
@@ -177,7 +178,7 @@ export default function CodeScreen() {
         });
       }
     } catch (error) {
-      console.error('Failed to refresh session:', error);
+      logger.error('Failed to refresh session', error as Error);
     } finally {
       setRefreshing(false);
     }

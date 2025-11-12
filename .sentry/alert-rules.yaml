@@ -1,0 +1,443 @@
+# Sentry Alert Rules Configuration for MobVibe
+# Version: 1.0.0
+# Last Updated: 2025-11-12
+#
+# These alert rules should be configured manually in the Sentry dashboard.
+# This file serves as version control documentation of the alert configuration.
+#
+# To apply these rules:
+# 1. Go to: https://sentry.io/organizations/YOUR_ORG/alerts/
+# 2. Click "Create Alert Rule"
+# 3. Configure using the settings below
+# 4. Test each alert after creation
+#
+# Sentry CLI application (future automation):
+# sentry-cli alerts create --config .sentry/alert-rules.yaml
+
+# =============================================================================
+# P0 CRITICAL ALERTS - Immediate Response Required
+# =============================================================================
+
+alerts:
+  # ---------------------------------------------------------------------------
+  # Alert 1: Critical Errors in Production
+  # ---------------------------------------------------------------------------
+  - name: "Critical Errors - Production"
+    description: "Immediate notification for any error tagged as critical or fatal"
+    enabled: true
+
+    # Conditions (ALL must be true)
+    conditions:
+      - type: event.level
+        value: error
+      - type: event.tags
+        key: severity
+        value: critical
+      - type: event.environment
+        value: production
+
+    # Actions (ALL will execute when conditions met)
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "@here 🚨 Critical error in production!"
+        tags: true
+
+      - type: email
+        recipients:
+          - oncall@example.com
+        subject: "[MobVibe] Critical Production Error"
+
+      # Optional: SMS for critical alerts
+      # - type: pagerduty
+      #   service: "MobVibe Production"
+      #   severity: critical
+
+    # Alert frequency
+    frequency: every_event
+
+    # Alert ownership
+    owner: team:platform
+
+    # Priority
+    priority: p0
+
+    # SLA
+    response_time_target: 5_minutes
+    resolution_time_target: 2_hours
+
+  # ---------------------------------------------------------------------------
+  # Alert 2: High User Impact Errors
+  # ---------------------------------------------------------------------------
+  - name: "High User Impact - Production"
+    description: "Alert when errors affect more than 10 users in 15 minutes"
+    enabled: true
+
+    conditions:
+      - type: users_affected
+        value: 10
+        interval: 15m
+      - type: event.environment
+        value: production
+      - type: event.level
+        value: error
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "@here ⚠️ High user impact detected!"
+
+      - type: email
+        recipients:
+          - team@example.com
+
+    frequency: 5_minutes
+    owner: team:platform
+    priority: p0
+    response_time_target: 5_minutes
+
+# =============================================================================
+# P1 HIGH PRIORITY ALERTS - Urgent Response
+# =============================================================================
+
+  # ---------------------------------------------------------------------------
+  # Alert 3: Error Rate Spike Detection
+  # ---------------------------------------------------------------------------
+  - name: "Error Rate Spike"
+    description: "Alert when error rate increases by more than 10% in 5 minutes"
+    enabled: true
+
+    conditions:
+      - type: event_frequency
+        comparison_type: percent_increase
+        value: 10
+        interval: 5m
+        comparison_interval: 5m
+      - type: event.environment
+        value: production
+      - type: event.level
+        value: error
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "📈 Error rate spike detected in production"
+
+    frequency: 5_minutes
+    owner: team:platform
+    priority: p1
+    response_time_target: 15_minutes
+
+  # ---------------------------------------------------------------------------
+  # Alert 4: High Error Volume
+  # ---------------------------------------------------------------------------
+  - name: "High Error Volume"
+    description: "Alert when more than 100 errors occur in 1 hour"
+    enabled: true
+
+    conditions:
+      - type: event_frequency
+        comparison_type: count
+        value: 100
+        interval: 1h
+      - type: event.environment
+        value: production
+      - type: event.level
+        value: error
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "⚠️ High error volume in production (>100 errors/hour)"
+
+    frequency: 1_hour
+    owner: team:platform
+    priority: p1
+    response_time_target: 30_minutes
+
+  # ---------------------------------------------------------------------------
+  # Alert 5: Regression Detection
+  # ---------------------------------------------------------------------------
+  - name: "Error Regression Alert"
+    description: "Alert when a resolved error reoccurs in production"
+    enabled: true
+
+    conditions:
+      - type: state_change
+        from: resolved
+        to: unresolved
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "🔄 Error regression detected - resolved issue has returned"
+
+      - type: email
+        recipients:
+          - team@example.com
+
+    frequency: every_regression
+    owner: team:platform
+    priority: p1
+    response_time_target: 30_minutes
+
+# =============================================================================
+# P2 MEDIUM PRIORITY ALERTS - Standard Response
+# =============================================================================
+
+  # ---------------------------------------------------------------------------
+  # Alert 6: New Error Type Detection
+  # ---------------------------------------------------------------------------
+  - name: "New Error Type"
+    description: "Alert on first occurrence of a new error fingerprint"
+    enabled: true
+
+    conditions:
+      - type: first_seen
+      - type: event.environment
+        value: production
+      - type: event.level
+        value: error
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "🆕 New error type detected in production"
+
+    frequency: every_new_issue
+    owner: team:platform
+    priority: p2
+    response_time_target: 1_hour
+
+  # ---------------------------------------------------------------------------
+  # Alert 7: Authentication Errors
+  # ---------------------------------------------------------------------------
+  - name: "Authentication Error Spike"
+    description: "Alert when auth errors exceed normal rate"
+    enabled: true
+
+    conditions:
+      - type: event.message
+        operator: contains
+        value: "auth"
+      - type: event_frequency
+        value: 5
+        interval: 1m
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-security"
+        message: "🔐 Authentication error spike detected"
+
+      - type: email
+        recipients:
+          - security@example.com
+
+    frequency: 5_minutes
+    owner: team:security
+    priority: p1
+    response_time_target: 15_minutes
+
+  # ---------------------------------------------------------------------------
+  # Alert 8: API Timeout Errors
+  # ---------------------------------------------------------------------------
+  - name: "API Timeout Spike"
+    description: "Alert when API timeouts exceed threshold"
+    enabled: true
+
+    conditions:
+      - type: event.message
+        operator: contains
+        value: "timeout"
+      - type: event_frequency
+        value: 10
+        interval: 5m
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "⏱️ API timeout spike detected"
+
+    frequency: 5_minutes
+    owner: team:backend
+    priority: p2
+    response_time_target: 30_minutes
+
+# =============================================================================
+# FEATURE-SPECIFIC ALERTS
+# =============================================================================
+
+  # ---------------------------------------------------------------------------
+  # Alert 9: Asset Generation Errors
+  # ---------------------------------------------------------------------------
+  - name: "Asset Generation Failures"
+    description: "Alert when asset generation fails repeatedly"
+    enabled: true
+
+    conditions:
+      - type: event.tags
+        key: feature
+        value: asset-generation
+      - type: event_frequency
+        value: 5
+        interval: 10m
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-assets"
+        message: "🎨 Asset generation failures detected"
+
+    frequency: 10_minutes
+    owner: team:assets
+    priority: p2
+
+  # ---------------------------------------------------------------------------
+  # Alert 10: Payment Processing Errors
+  # ---------------------------------------------------------------------------
+  - name: "Payment Processing Failures"
+    description: "Critical alert for any payment processing error"
+    enabled: true
+
+    conditions:
+      - type: event.tags
+        key: feature
+        value: payment
+      - type: event.level
+        value: error
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-alerts"
+        message: "@here 💳 Payment processing error - immediate attention required!"
+
+      - type: email
+        recipients:
+          - finance@example.com
+          - team@example.com
+
+      # Optional: Escalate to PagerDuty
+      # - type: pagerduty
+      #   service: "MobVibe Payments"
+      #   severity: critical
+
+    frequency: every_event
+    owner: team:payments
+    priority: p0
+    response_time_target: 5_minutes
+
+# =============================================================================
+# PERFORMANCE ALERTS
+# =============================================================================
+
+  # ---------------------------------------------------------------------------
+  # Alert 11: Slow Transaction Performance
+  # ---------------------------------------------------------------------------
+  - name: "Slow Transactions"
+    description: "Alert when transaction duration exceeds 3 seconds"
+    enabled: true
+
+    conditions:
+      - type: transaction.duration
+        operator: greater_than
+        value: 3000  # milliseconds
+      - type: event_frequency
+        value: 100
+        interval: 5m
+      - type: event.environment
+        value: production
+
+    actions:
+      - type: slack
+        workspace: "YOUR_WORKSPACE"
+        channel: "#mobvibe-performance"
+        message: "🐌 Slow transaction performance detected"
+
+    frequency: 5_minutes
+    owner: team:performance
+    priority: p2
+
+# =============================================================================
+# CONFIGURATION NOTES
+# =============================================================================
+
+# Alert Channels:
+# - #mobvibe-alerts: Primary alert channel for all teams
+# - #mobvibe-security: Security-specific alerts
+# - #mobvibe-assets: Asset generation team alerts
+# - #mobvibe-performance: Performance monitoring
+
+# Email Distribution Lists:
+# - team@example.com: All developers
+# - oncall@example.com: Current on-call engineer
+# - security@example.com: Security team
+# - finance@example.com: Finance team for payment alerts
+
+# Priority Levels:
+# - P0: Critical - Response within 5 minutes, resolution within 2 hours
+# - P1: High - Response within 15 minutes, resolution within 4 hours
+# - P2: Medium - Response within 1 hour, resolution within 1 day
+# - P3: Low - Response within 1 day, resolution within 1 week
+
+# Alert Frequency Guidelines:
+# - every_event: No throttling (for critical alerts)
+# - every_new_issue: Once per unique error fingerprint
+# - every_regression: Once when resolved issue returns
+# - X_minutes: Throttle alerts to maximum once per X minutes
+
+# Testing:
+# All alerts should be tested after creation using:
+# - scripts/test-sentry-alerts.ts (automated tests)
+# - Manual error triggers in development
+# - Tag with test:true for test errors
+
+# Maintenance:
+# - Review alert effectiveness weekly
+# - Adjust thresholds monthly based on false positive rate
+# - Update team assignments quarterly
+# - Archive unused alerts (don't delete, disable instead)
+
+# Version Control:
+# Keep this file updated when making changes in Sentry dashboard
+# Include in code reviews when modifying alert logic
+# Document changes in git commit messages
+
+# =============================================================================
+# THRESHOLD RECOMMENDATIONS BY TRAFFIC LEVEL
+# =============================================================================
+
+# Low Traffic (< 1,000 DAU):
+#   error_rate_spike: 5% increase
+#   high_volume: > 10 errors/hour
+#   user_impact: > 5 users
+
+# Medium Traffic (1,000 - 10,000 DAU):
+#   error_rate_spike: 10% increase
+#   high_volume: > 100 errors/hour
+#   user_impact: > 10 users
+
+# High Traffic (> 10,000 DAU):
+#   error_rate_spike: 20% increase
+#   high_volume: > 1000 errors/hour
+#   user_impact: > 50 users
+
+# Adjust these values based on your actual traffic patterns.

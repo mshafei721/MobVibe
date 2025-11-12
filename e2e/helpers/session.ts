@@ -79,3 +79,68 @@ export const resumeSession = async () => {
     .toBeVisible()
     .withTimeout(5000);
 };
+
+/**
+ * Continue coding in current session
+ */
+export const continueSession = async (prompt: string) => {
+  console.log('[Session Helper] Continuing session with prompt:', prompt);
+
+  // Scroll to bottom to show input
+  await element(by.id('chat-scroll-view')).scrollTo('bottom');
+
+  // Enter new prompt
+  await element(by.id('message-input')).typeText(prompt);
+  await element(by.id('send-message-button')).tap();
+
+  // Wait for thinking indicator
+  await waitFor(element(by.id('thinking-indicator')))
+    .toBeVisible()
+    .withTimeout(5000);
+
+  console.log('[Session Helper] Continuation request sent');
+};
+
+/**
+ * Refresh preview
+ */
+export const refreshPreview = async () => {
+  console.log('[Session Helper] Refreshing preview');
+
+  await element(by.id('refresh-preview-button')).tap();
+
+  // Wait for refresh to complete
+  await waitFor(element(by.id('preview-output')))
+    .toBeVisible()
+    .withTimeout(10000);
+
+  console.log('[Session Helper] Preview refreshed');
+};
+
+/**
+ * Stop current session
+ */
+export const stopSession = async () => {
+  console.log('[Session Helper] Stopping session');
+
+  await element(by.id('stop-session-button')).tap();
+
+  // Confirm stop
+  await waitFor(element(by.id('confirm-stop')))
+    .toBeVisible()
+    .withTimeout(5000);
+  await element(by.id('confirm-stop')).tap();
+
+  console.log('[Session Helper] Session stopped');
+};
+
+/**
+ * Wait for session completion
+ */
+export const waitForSessionComplete = async () => {
+  console.log('[Session Helper] Waiting for session completion');
+  await waitFor(element(by.id('session-complete-indicator')))
+    .toBeVisible()
+    .withTimeout(30000);
+  console.log('[Session Helper] Session completed');
+};

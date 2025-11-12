@@ -18,6 +18,9 @@ web-build/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
 
 # IDE
 .vscode/
@@ -47,6 +50,7 @@ coverage/
 # Security
 secrets-report.json
 audit-report.json
+sentry.properties
 
 # Build artifacts
 *.tsbuildinfo

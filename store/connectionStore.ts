@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { logger } from '../utils/logger';
 
 interface ConnectionStore {
   // Network status
@@ -58,13 +59,13 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
  * Call this once at app startup
  */
 export function initializeNetworkListener() {
-  console.log('[ConnectionStore] Initializing network listener');
+  logger.info('[ConnectionStore] Initializing network listener');
 
   // Subscribe to network state changes
   const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
     const { isConnected, isInternetReachable, type } = state;
 
-    console.log('[ConnectionStore] Network state changed', {
+    logger.info('[ConnectionStore] Network state changed', {
       isConnected,
       isInternetReachable,
       type,
@@ -77,7 +78,7 @@ export function initializeNetworkListener() {
 
   // Get initial network state
   NetInfo.fetch().then((state) => {
-    console.log('[ConnectionStore] Initial network state', {
+    logger.info('[ConnectionStore] Initial network state', {
       isConnected: state.isConnected,
       isInternetReachable: state.isInternetReachable,
       type: state.type,

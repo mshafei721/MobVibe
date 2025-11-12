@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 5.0.0",
+    "version": ">= 5.2.0",
     "requireCommit": false
   },
   "build": {
@@ -8,41 +8,47 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "simulator": true,
-        "bundler": "metro"
+        "simulator": true
       },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
+      },
+      "env": {
+        "NODE_ENV": "development"
       }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "ios": {
-        "bundler": "metro"
+        "simulator": false,
+        "buildConfiguration": "Release"
       },
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "preview"
       }
     },
     "production": {
+      "distribution": "store",
       "channel": "production",
       "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_ENVIRONMENT": "production"
-      },
       "ios": {
-        "bundleIdentifier": "com.mobvibe.app",
-        "bundler": "metro",
-        "config": {
-          "usesAppleSignIn": false,
-          "usesIcloudStorage": false
-        }
+        "buildConfiguration": "Release"
       },
       "android": {
         "buildType": "apk",
-        "package": "com.mobvibe.app"
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_ENVIRONMENT": "production",
+        "SENTRY_ORG": "$SENTRY_ORG",
+        "SENTRY_PROJECT": "$SENTRY_PROJECT",
+        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN"
       }
     }
   },
@@ -59,14 +65,6 @@
         "track": "internal",
         "releaseStatus": "draft"
       }
-    }
-  },
-  "update": {
-    "production": {
-      "channel": "production"
-    },
-    "preview": {
-      "channel": "preview"
     }
   }
 }

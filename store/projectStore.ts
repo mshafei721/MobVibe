@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/services/supabase';
+import { logger } from '@/utils/logger';
 
 export interface Project {
   id: string;
@@ -170,7 +171,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         currentProject: state.currentProject?.id === id ? data : state.currentProject,
       }));
     } catch (error: any) {
-      console.error('Error refreshing project:', error);
+      logger.error('Error refreshing project:', error);
     }
   },
 

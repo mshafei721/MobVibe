@@ -47,15 +47,27 @@ export function useRealtimeMessages(
 
   useEffect(() => {
     if (!sessionId) {
-      console.log('[useRealtimeMessages] No session ID, skipping subscription');
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] No session ID, skipping subscription');
+      }
       return;
     }
 
-    console.log('[useRealtimeMessages] Subscribing to session:', sessionId);
+    // Prevent state updates after unmount or sessionId change
+    let isSubscribed = true;
+
+    if (__DEV__) {
+      console.log('[useRealtimeMessages] Subscribing to session:', sessionId);
+    }
 
     // Listen to thinking events
     const unsubThinking = sessionService.onThinking((data) => {
-      console.log('[useRealtimeMessages] Thinking event:', data);
+      if (!isSubscribed) return; // Guard against stale updates
+
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] Thinking event:', data);
+      }
+
       setIsThinking(true);
 
       // Add or update thinking message
@@ -83,7 +95,12 @@ export function useRealtimeMessages(
 
     // Listen to file change events (code generation)
     const unsubFileChange = sessionService.onFileChange((data) => {
-      console.log('[useRealtimeMessages] File change event:', data);
+      if (!isSubscribed) return; // Guard against stale updates
+
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] File change event:', data);
+      }
+
       setIsThinking(false);
 
       setMessages((prev) => {
@@ -115,12 +132,13 @@ export function useRealtimeMessages(
 
     // Listen to terminal output events
     const unsubTerminal = sessionService.onTerminalOutput((data) => {
-      console.log('[useRealtimeMessages] Terminal output event:', data);
+      if (!isSubscribed) return; // Guard against stale updates
 
-      // Don't show every terminal line as a message, just log it
-      // Terminal output is better shown in a dedicated terminal viewer
-      // But we can add it to messages if needed for debugging
-      if (process.env.NODE_ENV === 'development') {
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] Terminal output event:', data);
+
+        // Don't show every terminal line as a message in development
+        // Terminal output is better shown in a dedicated terminal viewer
         setMessages((prev) => [
           ...prev,
           {
@@ -139,7 +157,12 @@ export function useRealtimeMessages(
 
     // Listen to completion events
     const unsubComplete = sessionService.onCompletion((data) => {
-      console.log('[useRealtimeMessages] Completion event:', data);
+      if (!isSubscribed) return; // Guard against stale updates
+
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] Completion event:', data);
+      }
+
       setIsThinking(false);
 
       setMessages((prev) => {
@@ -163,7 +186,12 @@ export function useRealtimeMessages(
 
     // Listen to error events
     const unsubError = sessionService.onError((data) => {
-      console.log('[useRealtimeMessages] Error event:', data);
+      if (!isSubscribed) return; // Guard against stale updates
+
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] Error event:', data);
+      }
+
       setIsThinking(false);
 
       setMessages((prev) => {
@@ -188,7 +216,12 @@ export function useRealtimeMessages(
 
     // Cleanup on unmount or session change
     return () => {
-      console.log('[useRealtimeMessages] Cleaning up subscriptions');
+      isSubscribed = false; // Mark as unsubscribed
+
+      if (__DEV__) {
+        console.log('[useRealtimeMessages] Cleaning up subscriptions');
+      }
+
       unsubThinking();
       unsubFileChange();
       unsubTerminal();

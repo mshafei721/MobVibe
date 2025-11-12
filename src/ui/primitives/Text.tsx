@@ -10,6 +10,7 @@ export interface TextProps extends Omit<RNTextProps, 'style'> {
   align?: 'left' | 'center' | 'right';
   numberOfLines?: number;
   children: React.ReactNode;
+  style?: RNTextProps['style'];
 }
 
 export const Text: React.FC<TextProps> = ({
@@ -19,6 +20,7 @@ export const Text: React.FC<TextProps> = ({
   align,
   numberOfLines,
   accessibilityRole,
+  style,
   children,
   ...rest
 }) => {
@@ -79,6 +81,7 @@ export const Text: React.FC<TextProps> = ({
           ...alignStyle,
           color: colorStyle,
         },
+        style,
       ]}
       numberOfLines={numberOfLines}
       accessibilityRole={accessibilityRole || (role as RNTextProps['accessibilityRole'])}

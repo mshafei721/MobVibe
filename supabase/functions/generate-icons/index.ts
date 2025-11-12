@@ -116,16 +116,44 @@ serve(async (req) => {
     // Upload icons to Supabase Storage
     const iconUrls = await Promise.all(
       images.map(async (base64Image: string, index: number) => {
-        // Decode base64 to bytes
-        const binaryString = atob(base64Image)
-        const bytes = new Uint8Array(binaryString.length)
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i)
+        // Validate base64 format
+        if (!base64Image || typeof base64Image !== 'string') {
+          throw new Error('Invalid base64 image data')
         }
 
-        // Generate unique filename
+        // Check for valid base64 characters
+        if (!/^[A-Za-z0-9+/=]+$/.test(base64Image)) {
+          throw new Error('Invalid base64 format: contains invalid characters')
+        }
+
+        // Enforce size limit (10MB max for base64, ~7.3MB decoded)
+        const maxBase64Size = 10 * 1024 * 1024 * 1.37 // base64 is ~1.37x larger
+        if (base64Image.length > maxBase64Size) {
+          throw new Error(`Image too large: max ${Math.floor(maxBase64Size / 1024 / 1024)}MB`)
+        }
+
+        // Decode base64 to bytes with error handling
+        let bytes: Uint8Array
+        try {
+          const binaryString = atob(base64Image)
+          bytes = new Uint8Array(binaryString.length)
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i)
+          }
+        } catch (error) {
+          throw new Error('Failed to decode base64 image: ' + (error instanceof Error ? error.message : 'Unknown error'))
+        }
+
+        // Validate PNG signature (first 8 bytes: 89 50 4E 47 0D 0A 1A 0A)
+        const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+        if (bytes.length < 8 || !pngSignature.every((byte, i) => bytes[i] === byte)) {
+          throw new Error('Invalid image format: must be PNG')
+        }
+
+        // Generate unique filename with sanitization
         const timestamp = Date.now()
-        const filename = `icon-${timestamp}-${index}.png`
+        const safeIndex = Math.max(0, Math.min(999, index)) // Sanitize index
+        const filename = `icon-${timestamp}-${safeIndex}.png`
         const path = `${user.id}/${projectId}/${filename}`
 
         // Upload to storage
