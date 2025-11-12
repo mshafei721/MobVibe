@@ -7,6 +7,7 @@ module.exports = {
   preset: 'react-native',
 
   // Setup files
+  setupFiles: ['<rootDir>/jest.env.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 
   // Module paths
@@ -28,6 +29,11 @@ module.exports = {
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
+
+  // Transform ESM modules from node_modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|@react-native-community|expo|@expo|@unimodules|@gluestack-ui|@gluestack-style|@legendapp|react-native-reanimated|react-native-gesture-handler|react-native-screens|react-native-safe-area-context|@react-navigation)/)',
+  ],
 
   // File extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
