@@ -58,8 +58,8 @@ module.exports = {
     '!**/*.d.ts',
   ],
 
-  // Coverage thresholds (80% minimum)
-  coverageThresholds: {
+  // Coverage threshold (80% minimum)
+  coverageThreshold: {
     global: {
       branches: 80,
       functions: 80,
