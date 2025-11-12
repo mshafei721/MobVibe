@@ -57,10 +57,14 @@ export function parseAnsi(line: string): ParsedLine {
     if (match.index > lastIndex) {
       const text = line.substring(lastIndex, match.index);
       if (text.length > 0) {
-        segments.push({
-          text, color: currentColor, backgroundColor: currentBgColor,
-          bold: isBold, italic: isItalic, underline: isUnderline, dim: isDim,
-        });
+        const segment: TextSegment = { text };
+        if (currentColor) segment.color = currentColor;
+        if (currentBgColor) segment.backgroundColor = currentBgColor;
+        if (isBold) segment.bold = true;
+        if (isItalic) segment.italic = true;
+        if (isUnderline) segment.underline = true;
+        if (isDim) segment.dim = true;
+        segments.push(segment);
       }
     }
 
@@ -91,10 +95,14 @@ export function parseAnsi(line: string): ParsedLine {
   if (lastIndex < line.length) {
     const text = line.substring(lastIndex);
     if (text.length > 0) {
-      segments.push({
-        text, color: currentColor, backgroundColor: currentBgColor,
-        bold: isBold, italic: isItalic, underline: isUnderline, dim: isDim,
-      });
+      const segment: TextSegment = { text };
+      if (currentColor) segment.color = currentColor;
+      if (currentBgColor) segment.backgroundColor = currentBgColor;
+      if (isBold) segment.bold = true;
+      if (isItalic) segment.italic = true;
+      if (isUnderline) segment.underline = true;
+      if (isDim) segment.dim = true;
+      segments.push(segment);
     }
   }
 
@@ -110,21 +118,25 @@ export function stripAnsi(line: string): string {
 }
 
 export function isErrorLine(line: string): boolean {
-  return /error:|exception|fail(ed|ure)?||L|fatal|critical/i.test(line);
+  return /\b(error|exception|fail(ed|ure)?|✗|fatal|critical)\b/i.test(line);
 }
 
 export function isSuccessLine(line: string): boolean {
-  return /success|complete(d)?|||done|passed/i.test(line);
+  return /\b(success|complete(d)?|✓|done|passed)\b/i.test(line);
 }
 
 export function isWarningLine(line: string): boolean {
-  return /warn(ing)?:|deprecated|�|caution/i.test(line);
+  return /(\bwarn(ing)?\b|\bdeprecated\b|⚠|\bcaution\b)/i.test(line);
 }
 
 export function autoColorize(line: string): string {
+  // Don't colorize already colored lines
   if (/\x1b\[/.test(line)) return line;
-  if (isErrorLine(line)) return `\x1b[31m${line}\x1b[0m`;
+
+  // Check success first (before error) to avoid false matches
   if (isSuccessLine(line)) return `\x1b[32m${line}\x1b[0m`;
   if (isWarningLine(line)) return `\x1b[33m${line}\x1b[0m`;
+  if (isErrorLine(line)) return `\x1b[31m${line}\x1b[0m`;
+
   return line;
 }
